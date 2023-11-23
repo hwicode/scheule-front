@@ -1,19 +1,19 @@
 <template>
   <Navbar/>
-  <Calendar/>
+  <Schedule/>
   <Footer/>
 </template>
 
 <script>
 import Navbar from "./components/Navbar.vue";
-import Calendar from "./components/Calendar.vue";
+import Schedule from "./components/Schedule.vue";
 import Footer from "./components/Footer.vue";
 
 export default {
   name: 'App',
   components: {
     Navbar : Navbar,
-    Calendar : Calendar,
+    Schedule : Schedule,
     Footer : Footer,
   },
   
@@ -21,8 +21,5 @@ export default {
 </script>
 
 <style>
-.selector-for-some-widget {
-  box-sizing: content-box;
-}
 
 </style>
