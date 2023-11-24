@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import Goals from "./Goals.vue";
+import Goals from "../components/Goals.vue";
 
 export default {
   name: 'Calendar',
