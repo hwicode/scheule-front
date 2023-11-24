@@ -74,10 +74,10 @@
 
   <div class="container py-4 my-4 end-box">
     <div class="row">
-      <div class="col-md-4">
+      <div class="col-md-4 my-3">
         <MemoList/>
       </div>
-      <div class="col-md-8">
+      <div class="col-md-8 my-3">
         <div class="card">
           <div class="card-header d-flex align-items-center justify-content-between">
             <h4>Review</h4>
@@ -187,6 +187,10 @@ export default {
   }
 
   span {
+    font-size: 2.2vw;
+  }
+
+  p {
     font-size: 2.2vw;
   }
 
