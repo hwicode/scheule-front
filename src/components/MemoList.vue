@@ -4,7 +4,7 @@
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Memo List</h1>
+          <h4 class="modal-title" id="exampleModalLabel">Memo List</h4>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -23,7 +23,7 @@
 
   <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between">
-      <h4>Memo List</h4>
+      <h4 class="h4-responsive">Memo List</h4>
       <button @click="showAllMemos" class="btn border-secondary border-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
         <i class="bi bi-list text-secondary"></i>
       </button>
@@ -76,9 +76,20 @@ export default {
 </script>
 
 <style>
+
   .limited-charactor {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  @media screen and (max-width: 700px) {
+    .h4-responsive {
+      font-size: 4vw;
+    }
+
+    .list-group-item {
+      font-size: 2.2vw;
+    }
   }
 </style>
