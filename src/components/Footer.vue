@@ -18,5 +18,12 @@ export default {
 </script>
 
 <style scoped>
-
+   @media screen and (max-width: 700px) { 
+     .nav-item {
+      font-size: 2.8vw;
+     }
+     p {
+      font-size: 2.7vw;
+     }
+   }
 </style>
