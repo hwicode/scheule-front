@@ -4,7 +4,7 @@
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title" id="exampleModalLabel">Memo List</h4>
+          <h3 class="modal-title" id="exampleModalLabel">Memo List</h3>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -24,8 +24,8 @@
   <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between">
       <h4 class="h4-responsive">Memo List</h4>
-      <button @click="showAllMemos" class="btn border-secondary border-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        <i class="bi bi-list text-secondary"></i>
+      <button @click="showAllMemos" class="btn btn-sm border-dark border-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        <i class="bi bi-list"></i>
       </button>
     </div>
     <ul class="list-group list-group-flush">

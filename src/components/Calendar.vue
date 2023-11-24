@@ -153,12 +153,6 @@ export default {
 
 }
 
-@media screen and (max-width: 700px) {
-  h2 {
-    font-size: 4.5vw;
-  }
-}
-
 th {
   background-color: #f2f2f2;
   color: #333;

@@ -178,14 +178,6 @@ export default {
 }
 
 @media screen and (max-width: 700px) {
-  h2 {
-    font-size: 4.5vw;
-  }
-
-  h4 {
-    font-size: 4vw;
-  }
-
   span {
     font-size: 2.2vw;
   }

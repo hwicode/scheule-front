@@ -54,18 +54,4 @@ export default {
 </script>
 
 <style scoped>
-  @media screen and (max-width: 700px) {
-    h4 {
-      font-size: 4vw;
-    }
-
-    th{
-      font-size: 2.2vw;
-    }
-
-    td{
-      font-size: 2.2vw;
-    }
-
-  }
 </style>
