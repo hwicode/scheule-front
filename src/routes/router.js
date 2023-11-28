@@ -1,8 +1,8 @@
 import { createWebHistory, createRouter } from "vue-router";
 
-import Schedule from "../views/Schedule.vue";
-import Calendar from "../views/Calendar.vue";
-import Search from "../views/Search.vue";
+import Schedule from "@/views/Schedule.vue";
+import Calendar from "@/views/Calendar.vue";
+import Search from "@/views/Search.vue";
 
 const routes = [
     {
