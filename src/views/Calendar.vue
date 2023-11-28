@@ -42,7 +42,9 @@
 </template>
 
 <script>
-import Goals from "../components/Goals.vue";
+import Goals from "@/components/Goals.vue";
+
+import { getCalendarAndGoals } from '@/api/calendar.js';
 
 export default {
   name: 'Calendar',
@@ -54,6 +56,7 @@ export default {
       year: new Date().getFullYear(),
       month: new Date().getMonth() + 1,
       daysOfWeek: ['일', '월', '화', '수', '목', '금', '토'],
+      goals: [],
     };
   },
   computed: {
@@ -114,8 +117,16 @@ export default {
         console.log(day.date);
       }
     },
-
   },
+  mounted() {
+    getCalendarAndGoals({yearMonth: '2023-11'},
+     response => {
+      this.goals = response.data.goalResponses;
+      console.log(this.goals[0].name)
+    }, error => {
+      console.log(`오류가 발생했습니다: ${error.message}`);
+    });
+  }
 }
 
 </script>
