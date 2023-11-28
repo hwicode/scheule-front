@@ -46,6 +46,9 @@ import Goals from "../components/Goals.vue";
 
 export default {
   name: 'Calendar',
+  components: {
+    Goals : Goals
+  },
   data() {
     return {
       year: new Date().getFullYear(),
@@ -112,9 +115,6 @@ export default {
       }
     },
 
-  },
-  components: {
-    Goals : Goals
   },
 }
 

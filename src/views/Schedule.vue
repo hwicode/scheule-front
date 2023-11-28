@@ -100,6 +100,10 @@ import MemoList from "../components/MemoList.vue";
 
 export default {
   name: 'Schedule',
+  components: {
+    TimeTable : TimeTable,
+    MemoList : MemoList,
+  },
   data() {
     return {
       year: new Date().getFullYear(),
@@ -139,10 +143,6 @@ export default {
       this.day = currentDate.getDate();
     },
   },
-  components: {
-    TimeTable : TimeTable,
-    MemoList : MemoList,
-  }
 }
 </script>
 
