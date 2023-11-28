@@ -77,6 +77,12 @@ export default {
       this.itemsToShow += 10;
     },
   },
+  mounted() {
+    const param1Value = this.$route.query.searchTopic;
+    const param2Value = this.$route.query.tag;
+
+    console.log(param1Value + '  ' + param2Value)
+  },
 };
 </script>
 

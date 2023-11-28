@@ -38,8 +38,8 @@
             </li>
           </ul>
         </div>
-        <input class="form-control me-2 " type="search" placeholder="태그 이름을 입력하세요." aria-label="Search">
-        <button class="btn btn-outline-success" type="submit">Search</button>
+        <input v-model="tagInput" class="form-control me-2 " type="search" placeholder="태그 이름을 입력하세요." aria-label="Search">
+        <button @click.prevent="search" class="btn btn-outline-success">Search</button>
       </form>
 
     </div>
@@ -55,11 +55,21 @@ export default {
     return {
       topics: ['계획표', '메모'],
       searchTopic: '계획표',
+      tagInput: '',
     };
   },
   methods: {
     changeTopic(index) {
       this.searchTopic = this.topics[index];
+    },
+    search() {
+      this.$router.push({
+        path: '/search',
+        query: {
+          searchTopic: this.searchTopic,
+          tag: this.tagInput
+        }
+      });
     },
   },
 }
