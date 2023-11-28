@@ -95,8 +95,8 @@
 </template>
 
 <script>
-import TimeTable from "../components/TimeTable.vue";
-import MemoList from "../components/MemoList.vue";
+import TimeTable from "@/components/TimeTable.vue";
+import MemoList from "@/components/MemoList.vue";
 
 export default {
   name: 'Schedule',
