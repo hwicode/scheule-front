@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import { getTags } from '@/api/tags.js';
+import { getTags } from '@/api/navbar.js';
 
 export default {
   name: 'Navbar',
