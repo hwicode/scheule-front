@@ -51,7 +51,6 @@
       return {
         daysOfWeek: ['일', '월', '화', '수', '목', '금', '토'],
         schedules: [],
-        schedule: {}
       };
     },
     computed: {
@@ -104,7 +103,7 @@
           const response = await getCalendarSchedules({ yearMonth });
           this.schedules = response.data;
         } catch (error) {
-          console.log(`오류가 발생했습니다: ${error.message}`);
+        console.log(`오류가 발생했습니다: ${error.message}`);
         }
       },
 
