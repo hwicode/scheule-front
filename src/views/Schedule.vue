@@ -150,21 +150,6 @@ export default {
 .btn {
   --bs-btn-font-size: 1.25vw;
 }
-.oval-label {
-  display: inline-block;
-  background-color: white;
-  color: #333;
-  border-radius: 8px;
-  padding: 2px 4px;
-  border: 1px solid #3c3c3c;
-}
-
-.label-text {
-  display: block;
-  text-align: center;
-  font-size: 0.6vw;
-  font-weight: bold;
-}
 
 .d-flex.wrap {
   flex-wrap: wrap;
