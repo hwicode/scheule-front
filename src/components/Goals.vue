@@ -99,5 +99,9 @@ export default {
     font-size: 2.0vw;
   }
 
+  .label-text {
+    font-size: 1.0vw;
+  }
+
 }
 </style>
