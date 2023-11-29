@@ -51,23 +51,30 @@ export default {
       }
       this.fetchCalendarAndGoals();
     },
-    fetchCalendarAndGoals() {
-      const yearMonth = `${this.year}-${this.month.toString().padStart(2, '0')}`;
-      getCalendarAndGoals({ yearMonth: yearMonth },
-        response => {
-          this.goals = response.data.goalResponses;
-        },
-        error => {
-          if (error.response.data.message == '캘린더를 찾을 수 없습니다.') {
-            this.goals = [];
-          } else {
-            console.log(`오류가 발생했습니다: ${error.message}`);
-          }
-        }
-      );
+    
+    async fetchCalendarAndGoals() {
+      const yearMonth = this.getFormattedYearMonth();
+      try {
+        const response = await getCalendarAndGoals({ yearMonth });
+        this.goals = response.data.goalResponses;
+      } catch (error) {
+        this.handleFetchError(error);
+      }
     },
+
+    getFormattedYearMonth() {
+      return `${this.year}-${this.month.toString().padStart(2, '0')}`;
+    },
+
+    handleFetchError(error) {
+      if (error.response && error.response.data.message === '캘린더를 찾을 수 없습니다.') {
+        this.goals = [];
+      } else {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    }
   },
-  mounted() {
+  created() {
     this.fetchCalendarAndGoals();
   }
 }

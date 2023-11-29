@@ -1,10 +1,8 @@
 import { apiInstance } from './index.js';
 const api = apiInstance();
 
-function getCalendarAndGoals(queryParams, success, fail) {
-    api.get(`/calendars`, { params: queryParams })
-    .then(success)
-    .catch(fail);
+function getCalendarAndGoals(yearMonth) {
+    return api.get('/calendars', { params: yearMonth });
 }
   
 export { getCalendarAndGoals };
