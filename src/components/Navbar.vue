@@ -49,6 +49,8 @@
 </template>
 
 <script>
+import { getTags } from '@/api/tags.js';
+
 export default {
   name: 'Navbar',
   data() {
@@ -56,21 +58,40 @@ export default {
       topics: ['계획표', '메모'],
       searchTopic: '계획표',
       tagInput: '',
+      tags: new Map(),
     };
   },
   methods: {
     changeTopic(index) {
       this.searchTopic = this.topics[index];
     },
+
+    async fetchTags() {
+      try {
+        const response = await getTags();
+        this.tags = new Map(response.data.map(tag => [tag.name, tag.id]));
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
+
     search() {
+      const tagId = this.tags.get(this.tagInput);
+      
       this.$router.push({
         path: '/search',
         query: {
           searchTopic: this.searchTopic,
           tag: this.tagInput
-        }
+        },
+        state: {
+          tagId: tagId,
+        },
       });
     },
+  },
+  created() {
+    this.fetchTags();
   },
 }
 </script>
