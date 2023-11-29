@@ -10,7 +10,7 @@
         </button>
     </div>
     
-    <Goals/>
+    <Goals :goals="goals"/>
     <CalendarSchedule :year="year" :month="month" />
   </div>
 </template>
@@ -18,7 +18,6 @@
 <script>
 import Goals from "@/components/Goals.vue";
 import CalendarSchedule from "@/components/CalendarSchedule.vue";
-
 import { getCalendarAndGoals } from '@/api/calendar.js';
 
 export default {
@@ -41,6 +40,7 @@ export default {
         this.month = 12;
         this.year -= 1;
       }
+      this.fetchCalendarAndGoals();
     },
 
     nextMonth() {
@@ -49,15 +49,26 @@ export default {
         this.month = 1;
         this.year += 1;
       }
+      this.fetchCalendarAndGoals();
+    },
+    fetchCalendarAndGoals() {
+      const yearMonth = `${this.year}-${this.month.toString().padStart(2, '0')}`;
+      getCalendarAndGoals({ yearMonth: yearMonth },
+        response => {
+          this.goals = response.data.goalResponses;
+        },
+        error => {
+          if (error.response.data.message == '캘린더를 찾을 수 없습니다.') {
+            this.goals = [];
+          } else {
+            console.log(`오류가 발생했습니다: ${error.message}`);
+          }
+        }
+      );
     },
   },
   mounted() {
-    getCalendarAndGoals({yearMonth: '2023-11'},
-     response => {
-      this.goals = response.data.goalResponses;
-    }, error => {
-      console.log(`오류가 발생했습니다: ${error.message}`);
-    });
+    this.fetchCalendarAndGoals();
   }
 }
 

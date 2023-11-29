@@ -20,7 +20,10 @@
                 :aria-expanded="false"
                 :aria-controls="'collapse' + index"
               >
-                {{ goal.name }}
+                  {{ goal.name }}
+                  <div class="oval-label mx-2">
+                    <span class="label-text">{{ goal.goalStatus }}</span>
+                  </div>
               </button>
             </h2>
             <div
@@ -29,8 +32,11 @@
               :data-bs-parent="'#accordionExample' + index"
             >
               <div class="accordion-body">
-                <div v-for="(subGoal, index) in goal.subGoals" :key="index">
+                <div v-for="(subGoal, index) in goal.subGoalResponses" :key="index">
                   {{ subGoal.name }}
+                  <div class="oval-label mx-2">
+                    <span class="label-text">{{ subGoal.subGoalStatus }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -44,28 +50,21 @@
 
 <script>
 export default {
+  name: 'Goals',
+  props: {
+      goals: Array
+  },
   data() {
     return {
-      goals: [
-        { name: '목표 1', subGoals: [{name : '서브 1-1'}, {name :'서브 1-2'}], showSubGoals: false },
-        { name: '목표 2', subGoals: [{name : '서브 2-1'}, {name :'서브 2-2'}], showSubGoals: false },
-        { name: '목표 3', subGoals: [{name : '서브 3-1'}, {name :'서브 3-2'}], showSubGoals: false },
-        { name: '목표 1', subGoals: [{name : '서브 1-1'}, {name :'서브 1-2'}], showSubGoals: false },
-        { name: '목표 2', subGoals: [{name : '서브 2-1'}, {name :'서브 2-2'}], showSubGoals: false },
-        { name: '목표 3', subGoals: [{name : '서브 3-1'}, {name :'서브 3-2'}], showSubGoals: false },
-        { name: '목표 3', subGoals: [{name : '서브 3-1'}, {name :'서브 3-2'}], showSubGoals: false },
-      ],
-      showAll: false, // "더 보기" 버튼을 클릭하면 true로 변경
+      showAll: false,
     };
   },
   computed: {
-    // 보여질 목표의 개수 계산
     visibleGoals() {
       return this.showAll ? this.goals : this.goals.slice(0, 2);
     },
   },
   methods: {
-    // "더 보기" 버튼 클릭 시 모든 목표 표시
     showAllGoals() {
       this.showAll = !this.showAll;
     },
