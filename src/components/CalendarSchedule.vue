@@ -10,14 +10,26 @@
         </thead>
         <tbody>
           <tr v-for="week in calendar" :key="week">
-            <td v-for="(day, index) in week" :key="index" @click="selectDate(day)" style="cursor: pointer;">
+            <td v-for="(day, index) in week" :key="index" @click="selectDate(day)" style="cursor: pointer;" width="100 / 7">
               <div v-if="day.date">
-                <div :class="dayClasses(index)" class="day">
-                  {{ day.day }}
+                <div class="d-flex justify-content-between align-items-center">
+                  <div :class="dayClasses(index)" class="day">
+                    {{ day.day }}
+                  </div>
+                  <div v-if="day.schedule">{{ day.schedule.emoji }}</div>
                 </div>
-                <div class="content">12345151356</div>
-                <div class="content">12345151356</div>
-                <div class="content">12345151356</div>
+                <div class="content">
+                  <div v-if="day.schedule">총 점수 : {{ day.schedule.totalDifficultyScore }}</div>
+                  <div v-else>&nbsp;</div>
+                </div>
+                <div class="content">
+                  <div v-if="day.schedule">성취도 : {{ day.schedule.todayDonePercent }}%</div>
+                  <div v-else>&nbsp;</div>
+                </div>
+                <div class="content">
+                  <div v-if="day.schedule">메인 태그 : {{ day.schedule.mainTagName }}</div>
+                  <div v-else>&nbsp;</div>
+                </div>
               </div>
             </td>
           </tr>
@@ -27,6 +39,8 @@
   </template>
   
   <script>
+  import { getCalendarSchedules } from '@/api/calendar-schedule.js';
+
   export default {
     name: 'CalendarSchedule',
     props: {
@@ -36,6 +50,8 @@
     data() {
       return {
         daysOfWeek: ['일', '월', '화', '수', '목', '금', '토'],
+        schedules: [],
+        schedule: {}
       };
     },
     computed: {
@@ -56,7 +72,8 @@
             } else if (j < firstDayOfWeek && calendar.length === 0) {
               week.push({ day: '', date: null });
             } else {
-              week.push({ day: date, date: new Date(this.year, this.month - 1, date) });
+              const schedule = this.findScheduleForDate(date);
+              week.push({ day: date, date: new Date(this.year, this.month - 1, date), schedule });
               date++;
             }
           }
@@ -80,7 +97,36 @@
           console.log(day.date);
         }
       },
+
+      async fetchCalendarSchedules() {
+        const yearMonth = this.getFormattedYearMonth();
+        try {
+          const response = await getCalendarSchedules({ yearMonth });
+          this.schedules = response.data;
+        } catch (error) {
+          console.log(`오류가 발생했습니다: ${error.message}`);
+        }
+      },
+
+      getFormattedYearMonth() {
+        return `${this.year}-${this.month.toString().padStart(2, '0')}`;
+      },
+
+      findScheduleForDate(day) {
+        const date = new Date(this.year, this.month - 1, day);
+        return this.schedules.find(schedule => {
+          const scheduleDate = new Date(schedule.yearAndMonthAndDay);
+          return (
+            scheduleDate.getFullYear() === date.getFullYear() &&
+            scheduleDate.getMonth() === date.getMonth() &&
+            scheduleDate.getDate() === date.getDate()
+          );
+        });
+      },
     },
+    created() {
+      this.fetchCalendarSchedules();
+    }
   };
   </script>
   
@@ -88,10 +134,12 @@
   .table {
     width: 80%;
     border-collapse: collapse;
+    aspect-ratio: 2 / 1;
   }
   
   .content {
     text-align: center;
+    font-size: 0.75vw;
   }
   
   .table th, .table td {
@@ -108,7 +156,7 @@
       font-size: 2.2vw;
     }
     .content {
-      font-size: 1.5vw;
+      font-size: 1.25vw;
     }
   
   }
