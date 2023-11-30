@@ -143,6 +143,12 @@ export default {
       this.day = currentDate.getDate();
     },
   },
+  created() {
+    const date = new Date(this.$route.query.date);
+    this.year = date.getFullYear();
+    this.month = date.getMonth() + 1;
+    this.day = date.getDate();
+  }
 }
 </script>
 

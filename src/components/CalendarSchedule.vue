@@ -92,8 +92,12 @@
   
       selectDate(day) {
         if (day.date) {
-          // 선택한 날짜에 대한 처리 로직 추가
-          console.log(day.date);
+          this.$router.push({
+            path: '/schedule',
+            query: {
+              date: this.getFormattedDate(day.date.getDate()),
+            },
+          });
         }
       },
 
@@ -109,6 +113,10 @@
 
       getFormattedYearMonth() {
         return `${this.year}-${this.month.toString().padStart(2, '0')}`;
+      },
+
+      getFormattedDate(day) {
+        return `${this.year}-${this.month.toString().padStart(2, '0')}-${day}`;
       },
     },
     created() {

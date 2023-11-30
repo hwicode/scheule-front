@@ -11,7 +11,7 @@
 
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <router-link to="/schedule" class="nav-link">
+          <router-link :to="{ path: '/schedule', query: { date: this.getFormattedDate() }}" class="nav-link">
             Daily Schedule
           </router-link>
         </li>
@@ -62,6 +62,15 @@ export default {
     };
   },
   methods: {
+    getFormattedDate() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+
+      return `${year}-${month.toString().padStart(2, '0')}-${day}`;
+    },  
+
     changeTopic(index) {
       this.searchTopic = this.topics[index];
     },
