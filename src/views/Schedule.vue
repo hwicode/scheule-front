@@ -14,7 +14,7 @@
       <div class="col">
         <div class="bg-secondary my-4 py-1 text-white">
           <div class="text-end pb-3">
-            <span class="mx-2 d-inline-block">총 공부 시간 : 6시간 20분</span>
+            <span class="mx-2 d-inline-block">총 공부 시간 : {{ Math.floor(totalLearningTime / 60) }}시간 {{ totalLearningTime % 60 }}분</span>
             <span class="mx-2 d-inline-block">총 점수 : {{ totalScore }}</span>
             <span class="mx-2 d-inline-block">성취도 : {{ achievement }}%</span>
             <span class="mx-2 d-inline-block">메인 태그 : {{ mainTag }}</span>
@@ -22,7 +22,7 @@
 
           <div class="d-flex justify-content-center pb-2 wrap">
             <div v-for="tag in tags" :key="tag" class="oval-label mx-2">
-              <span class="label-text">{{ tag }}</span>
+              <span class="label-text">{{ tag.name }}</span>
             </div>
           </div> 
 
@@ -38,26 +38,26 @@
         <ul class="list-group">
           <li v-for="(item, index) in items" :key="index" class="list-group-item">
             <div class="d-flex justify-content-between align-items-center">
-              <span class="fw-bold">{{ item.text }}</span>
+              <span class="fw-bold">{{ item.name }}</span>
               <div>
-                <div class="oval-label mx-2">
+                <div class="oval-label mx-1">
                   <span class="label-text">상태</span>
                 </div>
-                <div class="oval-label mx-2">
+                <div class="oval-label mx-1">
                   <span class="label-text">우선 순위</span>
                 </div>
-                <div class="oval-label mx-2">
+                <div class="oval-label mx-1">
                   <span class="label-text">어려움</span>
                 </div>
-                <div class="oval-label mx-2">
+                <div class="oval-label mx-1">
                   <span class="label-text">중요도</span>
                 </div>
               </div>
             </div>
-            <ul v-if="item.subitems" class="list-group mt-2 list-group-flush">
-              <li v-for="(subitem, subIndex) in item.subitems" :key="subIndex" class="list-group-item">
-                <span>{{ subitem }}</span>
-                <div class="oval-label mx-4">
+            <ul v-if="item.subTaskQueryResponses" class="list-group mt-2 list-group-flush">
+              <li v-for="(subitem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
+                <span>{{ subitem.name }}</span>
+                <div class="oval-label mx-2">
                   <span class="label-text">상태</span>
                 </div>
               </li>
@@ -81,12 +81,10 @@
         <div class="card">
           <div class="card-header d-flex align-items-center justify-content-between">
             <h4>Review</h4>
-            <i class="bi bi-list"></i>
+            {{ this.emoji }}
           </div>
           <div class="card-body">
-            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content. 
-              Some quick example text to build on the card title and make up the bulk of the card's content. 
-              Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+            <p class="card-text">{{ this.review }}</p>
           </div>
         </div>
       </div>
@@ -97,6 +95,7 @@
 <script>
 import TimeTable from "@/components/TimeTable.vue";
 import MemoList from "@/components/MemoList.vue";
+import { getSchedule, getScheduleTags } from '@/api/schedule.js';
 
 export default {
   name: 'Schedule',
@@ -109,19 +108,14 @@ export default {
       year: new Date().getFullYear(),
       month: new Date().getMonth() + 1,
       day: new Date().getDate(),
-      totalScore: 15,
-      achievement: 78,
-      mainTag: '메인 태그',
-      tags: [
-        'YourTextHere','YourTextHere','YourTextHere','YourTextHere',
-      ],
-      items: [
-        { text: 'An item', subitems: ['Subitem 1', 'Subitem 2'] },
-        { text: 'A second item', subitems: ['Subitem 1', 'Subitem 2'] },
-        { text: 'A third item' },
-        { text: 'A fourth item', subitems: ['Subitem 1', 'Subitem 2'] },
-        { text: 'And a fifth one' },
-      ],
+      totalScore: 0,
+      achievement: 0,
+      totalLearningTime: 0,
+      emoji: undefined,
+      mainTag: '',
+      review: '',
+      tags: [],
+      items: [],
     };
   },
   methods: {
@@ -142,12 +136,49 @@ export default {
       this.month = currentDate.getMonth() + 1;
       this.day = currentDate.getDate();
     },
+
+    async fetchSchedule() {
+      const date = this.getFormattedDate();
+      try {
+        const response = await getSchedule({ date });
+        this.mappingData(response.data);
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
+
+    mappingData(data) {
+      this.totalScore = data.totalDifficultyScore;
+      this.achievement = data.todayDonePercent;
+      this.totalLearningTime = data.totalLearningTime;
+      this.emoji = data.emoji,
+      this.mainTag = data.mainTagName;
+      this.review = data.review;
+      this.items = data.taskQueryResponses;
+    },
+
+    async fetchScheduleTags() {
+      const date = this.getFormattedDate();
+      try {
+        const response = await getScheduleTags({ date });
+        this.tags = response.data;
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
+
+    getFormattedDate() {
+      return `${this.year}-${this.month.toString().padStart(2, '0')}-${this.day}`;
+    },
   },
   created() {
     const date = new Date(this.$route.query.date);
     this.year = date.getFullYear();
     this.month = date.getMonth() + 1;
     this.day = date.getDate();
+
+    this.fetchSchedule();
+    this.fetchScheduleTags();
   }
 }
 </script>
@@ -177,7 +208,7 @@ export default {
   }
 
   .label-text {
-  font-size: 1.5vw;
+    font-size: 1.5vw;
   }
 }
 </style>
