@@ -50,7 +50,7 @@
     data() {
       return {
         daysOfWeek: ['일', '월', '화', '수', '목', '금', '토'],
-        schedules: [],
+        schedules: new Map(),
       };
     },
     computed: {
@@ -71,7 +71,7 @@
             } else if (j < firstDayOfWeek && calendar.length === 0) {
               week.push({ day: '', date: null });
             } else {
-              const schedule = this.findScheduleForDate(date);
+              const schedule = this.schedules.get(date);
               week.push({ day: date, date: new Date(this.year, this.month - 1, date), schedule });
               date++;
             }
@@ -101,7 +101,7 @@
         const yearMonth = this.getFormattedYearMonth();
         try {
           const response = await getCalendarSchedules({ yearMonth });
-          this.schedules = response.data;
+          this.schedules = new Map(response.data.map(schedule => [new Date(schedule.yearAndMonthAndDay).getDate(), schedule]));
         } catch (error) {
         console.log(`오류가 발생했습니다: ${error.message}`);
         }
@@ -109,18 +109,6 @@
 
       getFormattedYearMonth() {
         return `${this.year}-${this.month.toString().padStart(2, '0')}`;
-      },
-
-      findScheduleForDate(day) {
-        const date = new Date(this.year, this.month - 1, day);
-        return this.schedules.find(schedule => {
-          const scheduleDate = new Date(schedule.yearAndMonthAndDay);
-          return (
-            scheduleDate.getFullYear() === date.getFullYear() &&
-            scheduleDate.getMonth() === date.getMonth() &&
-            scheduleDate.getDate() === date.getDate()
-          );
-        });
       },
     },
     created() {
