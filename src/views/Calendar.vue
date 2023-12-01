@@ -11,7 +11,7 @@
     </div>
     
     <Goals :goals="goals"/>
-    <CalendarSchedule :key="`${year}-${month}`" :year="year" :month="month" />
+    <CalendarSchedule :year="year" :month="month" />
   </div>
 </template>
 

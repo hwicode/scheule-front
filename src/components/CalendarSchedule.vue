@@ -82,6 +82,14 @@
         return calendar;
       },
     },
+    watch: {
+      year() {
+        this.fetchCalendarSchedules();
+      },
+      month() {
+        this.fetchCalendarSchedules();
+      }
+    },
     methods: {
       dayClasses(index) {
         return {
