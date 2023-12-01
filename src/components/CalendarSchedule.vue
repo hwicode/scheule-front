@@ -99,7 +99,7 @@
       },
   
       selectDate(day) {
-        if (day.date) {
+        if (day.date && day.schedule !== undefined) {
           this.$router.push({
             path: '/schedule',
             query: {
