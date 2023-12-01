@@ -75,7 +75,7 @@
   <div class="container py-4 my-4 end-box">
     <div class="row">
       <div class="col-md-4 my-3">
-        <MemoList/>
+        <MemoList :dailyScheduleId="id"/>
       </div>
       <div class="col-md-8 my-3">
         <div class="card">
@@ -108,6 +108,7 @@ export default {
       year: new Date().getFullYear(),
       month: new Date().getMonth() + 1,
       day: new Date().getDate(),
+      id: 0,
       totalScore: 0,
       achievement: 0,
       totalLearningTime: 0,
@@ -170,6 +171,7 @@ export default {
     },
 
     mappingData(data) {
+      this.id = data.id;
       this.totalScore = data.totalDifficultyScore;
       this.achievement = data.todayDonePercent;
       this.totalLearningTime = data.totalLearningTime;

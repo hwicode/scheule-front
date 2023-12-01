@@ -37,28 +37,16 @@
 </template>
 
 <script>
+import { getMemos } from '@/api/memo-list.js';
+
 export default {
   name: 'MemoList',
+  props: {
+    dailyScheduleId: Number,
+  },
   data() {
     return {
-      memos: [
-        { text: 'ifnsifejsmfkdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjdsmdkwndjwqndjidsokfmdskfmakdnwqiwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwdn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-        { text: 'ifnsifejsmfkdsmdkwndjwqndjidsokfmdskfmakdnwqidn' },
-      ],
+      memos: [],
       showAll: false,
     };
   },
@@ -71,7 +59,20 @@ export default {
     showAllMemos() {
       this.showAll = true;
     },
+
+    async fetchMemos() {
+      try {
+        const response = await getMemos(this.dailyScheduleId);
+        this.memos = response.data;
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
   },
+
+  updated() {
+    this.fetchMemos();
+  }
 };
 </script>
 
