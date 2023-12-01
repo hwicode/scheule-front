@@ -5,13 +5,13 @@
           <i class="bi bi-caret-left-fill"></i>
         </button>
         <h2 class="me-4">{{ month }}월 {{ year }}년</h2>
-        <button @click="nextMonth" class="btn btn-secondary">
+        <button v-if="showCalendarNextButton()" @click="nextMonth" class="btn btn-secondary">
           <i class="bi bi-caret-right-fill"></i>
         </button>
     </div>
     
     <Goals :goals="goals"/>
-    <CalendarSchedule :year="year" :month="month" />
+    <CalendarSchedule :key="`${year}-${month}`" :year="year" :month="month" />
   </div>
 </template>
 
@@ -50,6 +50,13 @@ export default {
         this.year += 1;
       }
       this.fetchCalendarAndGoals();
+    },
+
+    showCalendarNextButton() {
+      if (this.year === new Date().getFullYear() && this.month === new Date().getMonth() + 1) {
+        return false;
+      }
+      return true;
     },
     
     async fetchCalendarAndGoals() {
