@@ -55,6 +55,13 @@ export default {
       return this.memos.slice(0, 3);
     },
   },
+  watch: {
+    dailyScheduleId() {
+      if (this.dailyScheduleId !== 0) {
+        this.fetchMemos();
+      }
+    },
+  },
   methods: {
     showAllMemos() {
       this.showAll = true;
@@ -69,10 +76,6 @@ export default {
       }
     },
   },
-
-  updated() {
-    this.fetchMemos();
-  }
 };
 </script>
 
