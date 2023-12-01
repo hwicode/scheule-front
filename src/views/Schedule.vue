@@ -67,7 +67,7 @@
       </div>
 
       <div class="col-md-6 my-3">
-        <TimeTable/>
+        <TimeTable :date="getFormattedDate()" :tasks="tasks" :subTasks="subTasks"/>
       </div>
     </div>
   </div>
@@ -116,6 +116,8 @@ export default {
       review: '',
       tags: [],
       items: [],
+      tasks: new Map(),
+      subTasks: new Map(),
     };
   },
   methods: {
@@ -155,6 +157,20 @@ export default {
       this.mainTag = data.mainTagName;
       this.review = data.review;
       this.items = data.taskQueryResponses;
+      this.initializeTasksAndSubTasks();
+    },
+
+    initializeTasksAndSubTasks() {
+      console.log(11)
+      this.tasks = new Map(this.items.map(task => [task.id, task.name]));
+
+      const subItems = [];
+      this.items.forEach((item) => {
+        if (item.subTaskQueryResponses) {
+          subItems.push(...item.subTaskQueryResponses)
+        }
+      });
+      this.subTasks = new Map(subItems.map(subTask => [subTask.id, subTask.name]));
     },
 
     async fetchScheduleTags() {
