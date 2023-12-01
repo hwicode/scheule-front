@@ -4,7 +4,7 @@
         <i class="bi bi-caret-left-fill"></i>
       </button>
       <h2 class="me-4">{{ month }}월 {{ day }}일 {{ year }}년</h2>
-      <button @click="nextDay" class="btn btn-secondary">
+      <button v-if="showScheduleNextButton()" @click="nextDay" class="btn btn-secondary">
         <i class="bi bi-caret-right-fill"></i>
       </button>
   </div>
@@ -128,6 +128,8 @@ export default {
       this.year = currentDate.getFullYear();
       this.month = currentDate.getMonth() + 1;
       this.day = currentDate.getDate();
+
+      this.routeNewSchedule();
     },
 
     nextDay() {
@@ -137,6 +139,24 @@ export default {
       this.year = currentDate.getFullYear();
       this.month = currentDate.getMonth() + 1;
       this.day = currentDate.getDate();
+
+      this.routeNewSchedule();
+    },
+
+    routeNewSchedule() {
+      this.$router.push({
+        path: '/schedule',
+        query: {
+          date: this.getFormattedDate(),
+        },
+      });
+    },
+
+    showScheduleNextButton() {
+      if (this.year === new Date().getFullYear() && this.month === new Date().getMonth() + 1 && this.day === new Date().getDate()) {
+        return false;
+      }
+      return true;
     },
 
     async fetchSchedule() {
@@ -161,7 +181,6 @@ export default {
     },
 
     initializeTasksAndSubTasks() {
-      console.log(11)
       this.tasks = new Map(this.items.map(task => [task.id, task.name]));
 
       const subItems = [];
@@ -184,7 +203,7 @@ export default {
     },
 
     getFormattedDate() {
-      return `${this.year}-${this.month.toString().padStart(2, '0')}-${this.day}`;
+      return `${this.year}-${this.month.toString().padStart(2, '0')}-${this.day.toString().padStart(2, '0')}`;
     },
   },
   created() {
