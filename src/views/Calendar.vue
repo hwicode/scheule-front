@@ -75,7 +75,7 @@ export default {
 
     handleFetchError(error) {
       if (error.response && error.response.data.message === '캘린더를 찾을 수 없습니다.') {
-        this.goals = [];
+        return;
       } else {
         console.log(`오류가 발생했습니다: ${error.message}`);
       }
