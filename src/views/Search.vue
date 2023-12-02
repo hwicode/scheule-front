@@ -15,7 +15,7 @@
           </thead>
           <tbody>
             <tr v-for="(item, index) in items" :key="index">
-              <td class="text-center">{{ item.yearAndMonthAndDay }}</td>
+              <td @click="goToSchedule(item.yearAndMonthAndDay)" class="text-center" style="cursor: pointer;">{{ item.yearAndMonthAndDay }}</td>
               <td class="text-center">{{ item.mainTagName }}</td>
             </tr>
           </tbody>
@@ -63,6 +63,15 @@ export default {
     };
   },
   methods: {
+    goToSchedule(date) {
+      this.$router.push({
+        path: '/schedule',
+        query: {
+          date: date,
+        },
+      });
+    },
+
     loadMore() {
       if (this.topic === '계획표') {
         this.fetchSchedules(this.tagId, this.items[this.items.length - 1].id);
