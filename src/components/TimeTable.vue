@@ -4,9 +4,9 @@
     <table class="table">
       <thead>
         <tr>
-          <th style="width: 40%;">Time</th>
-          <th style="width: 10%;" class="text-center">Duration</th>
-          <th style="width: 50%;" class="text-center">Activity</th>
+          <th style="width: 25%;">Time</th>
+          <th style="width: 15%;" class="text-center">Duration</th>
+          <th style="width: 60%;" class="text-center">Activity</th>
         </tr>
       </thead>
       <tbody>
@@ -47,7 +47,7 @@ export default {
     },
 
     formatTime(dateTime) {
-      return dateTime.split('T')[1];
+      return dateTime.split('T')[1].substring(0, 5);
     },
 
     formatDuration(minutes) {
