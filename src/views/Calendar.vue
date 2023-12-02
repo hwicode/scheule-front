@@ -18,7 +18,7 @@
 <script>
 import Goals from "@/components/Goals.vue";
 import CalendarSchedule from "@/components/CalendarSchedule.vue";
-import { getCalendarAndGoals } from '@/api/calendar.js';
+import { getCalendarAndGoals, saveCalendar } from '@/api/calendar.js';
 
 export default {
   name: 'Calendar',
@@ -65,7 +65,7 @@ export default {
         const response = await getCalendarAndGoals({ yearMonth });
         this.goals = response.data.goalResponses;
       } catch (error) {
-        this.handleFetchError(error);
+        this.handleFetchError(error, yearMonth);
       }
     },
 
@@ -73,11 +73,16 @@ export default {
       return `${this.year}-${this.month.toString().padStart(2, '0')}`;
     },
 
-    handleFetchError(error) {
+    handleFetchError(error, yearMonth) {
       if (error.response && error.response.data.message === '캘린더를 찾을 수 없습니다.') {
-        return;
-      } else {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        return this.provideCalendar(yearMonth);
+      }
+      console.log(`오류가 발생했습니다: ${error.message}`);
+    },
+
+    provideCalendar(yearMonth) {
+      if (this.year === new Date().getFullYear() && this.month === new Date().getMonth() + 1) {
+        saveCalendar(yearMonth);
       }
     }
   },
