@@ -101,7 +101,7 @@
 <script>
 import TimeTable from "@/components/TimeTable.vue";
 import MemoList from "@/components/MemoList.vue";
-import { getSchedule, getScheduleTags } from '@/api/schedule.js';
+import { getSchedule, getScheduleTags, saveSchedule } from '@/api/schedule.js';
 
 export default {
   name: 'Schedule',
@@ -172,15 +172,7 @@ export default {
         const response = await getSchedule({ date });
         this.mappingData(response.data);
       } catch (error) {
-        this.handleFetchError(error);
-      }
-    },
-
-    handleFetchError(error) {
-      if (error.response && error.response.data.message === '계획표가 존재하지 않습니다.') {
-        return;
-      } else {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleFetchError(error, date);
       }
     },
 
@@ -206,6 +198,25 @@ export default {
         }
       });
       this.subTasks = new Map(subItems.map(subTask => [subTask.id, subTask.name]));
+    },
+
+    handleFetchError(error, date) {
+      if (error.response && error.response.data.message === '계획표가 존재하지 않습니다.') {
+        return this.provideSchedule(date);
+      }
+      console.log(`오류가 발생했습니다: ${error.message}`);
+    },
+
+    provideSchedule (date) {
+      if (this.year === new Date().getFullYear() && this.month === new Date().getMonth() + 1 && this.day === new Date().getDate()) {
+        saveSchedule(date);
+        this.$router.push({
+          path: '/schedule',
+          query: {
+            date: this.getFormattedDate(date),
+          },
+        });
+      }
     },
 
     async fetchScheduleTags() {

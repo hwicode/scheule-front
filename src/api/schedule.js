@@ -8,5 +8,9 @@ function getSchedule(date) {
 function getScheduleTags(date) {
     return api.get('/dailyschedule/daily-tag-lists', { params: date });
 }
+
+function saveSchedule(date) {
+    return api.post('/daily-todo-lists', { date: date })
+}
   
-export { getSchedule, getScheduleTags };
+export { getSchedule, getScheduleTags, saveSchedule };
