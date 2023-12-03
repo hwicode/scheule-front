@@ -10,7 +10,7 @@
         </button>
     </div>
     
-    <Goals :goals="goals"/>
+    <Goals @addGoal="addGoal" :goals="goals"/>
     <CalendarSchedule :year="year" :month="month" />
   </div>
 </template>
@@ -57,6 +57,10 @@ export default {
         return false;
       }
       return true;
+    },
+
+    addGoal(goal) {
+      this.goals.push(goal);
     },
     
     async fetchCalendarAndGoals() {

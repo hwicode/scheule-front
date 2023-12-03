@@ -1,10 +1,31 @@
 <template>
   <div class="container my-5">
-    <div class="d-flex align-items-center justify-content-between mb-2">
-      <h5 class="container-name">목표 리스트</h5>
+    <div class="d-flex align-items-center justify-content-between mb-1">
+      <div class="d-flex align-items-center">
+        <h5 class="container-name my-1">목표 리스트</h5>
+        <button @click="showGoalForm" class="btn px-1">
+          <i class="bi bi-plus fs-4"></i>
+        </button>  
+      </div>
       <button @click="showAllGoals" class="btn btn-secondary">
         <i class="bi bi-list"></i>
       </button>
+    </div>
+
+    <div v-if="showForm" class="goal-form border px-2 py-2">
+      <form @submit.prevent="addGoal">
+        <div class="mb-1">
+          <label for="goalName" class="form-label">목표 이름</label>
+          <input v-model="newGoalName" type="text" class="form-control" id="goalName" placeholder="새로운 목표를 입력하세요">
+        </div>
+        <div class="mb-2">
+          <label for="goalPeriod" class="form-label">기간</label>
+          <input v-model.number="newGoalPeriod" type="number" class="form-control" id="goalPeriod" placeholder="목표의 기간(month)을 입력하세요">
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary goal-form-btn">추가</button>
+        </div>
+      </form>
     </div>
 
     <div class="row">
@@ -57,6 +78,9 @@ export default {
   data() {
     return {
       showAll: false,
+      showForm: false,
+      newGoalName: '',
+      newGoalPeriod: null,
     };
   },
   computed: {
@@ -68,6 +92,23 @@ export default {
     showAllGoals() {
       this.showAll = !this.showAll;
     },
+
+    showGoalForm() {
+      this.newGoalName = '';
+      this.newGoalPeriod = null;
+      this.showForm = !this.showForm;
+    },
+    
+    addGoal() {
+      if (this.newGoalName.trim() !== '' && Number.isInteger(this.newGoalPeriod) && this.newGoalPeriod >= 0) {
+        const newGoal = {
+          name: this.newGoalName,
+          goalStatus: 'TODO',
+        };
+        this.$emit('addGoal', newGoal);
+        this.showForm = false;
+      }
+    },
   },
 };
 </script>
@@ -75,6 +116,10 @@ export default {
 <style scoped>
  .container {
   width: 80%;
+ }
+
+ .goal-form {
+    width: 40%;
  }
 
  @media screen and (max-width: 700px) { 
@@ -86,7 +131,24 @@ export default {
     font-size: 3.0vw;
   }
 
-  .btn {
+  .goal-form {
+    width: 50%;
+  }
+
+  .form-label {
+    font-size: 1.5vw;
+  }
+
+  .form-control {
+    font-size: 1.0vw;
+  }
+
+  .goal-form-btn {
+    font-size: 1.0vw;
+    padding: 3px 6px;
+  }
+
+  button {
     font-size: 2.0vw;
   }
 
