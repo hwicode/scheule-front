@@ -71,9 +71,7 @@ export default {
 
         this.calendarId = response.data.id;
         const goalResponses = response.data.goalResponses;
-        this.goals = goalResponses.map(item => {
-          return { ...item, showForm: false };
-        })
+        this.initializeGoals(goalResponses);
       } catch (error) {
         this.handleFetchError(error, yearMonth);
       }
@@ -81,6 +79,16 @@ export default {
 
     getFormattedYearMonth() {
       return `${this.year}-${this.month.toString().padStart(2, '0')}`;
+    },
+
+    initializeGoals(goalResponses) {
+      this.goals = goalResponses.map(item => {
+        return {
+          ...item,
+          showGoalChangeForm: false,
+          showGoalPeriodForm: false,
+        };
+      });
     },
 
     handleFetchError(error, yearMonth) {

@@ -33,9 +33,15 @@
         <div class="accordion" :id="'accordionExample' + index">
           <div class="accordion-item">
             <div class="accordion-header d-flex justify-content-between align-items-center">
-              <div @click="showGoalChangeForm(goal)" class="accordion-name text-break px-1" style="cursor: pointer;">
+              <div class="accordion-name text-break px-1" data-bs-toggle="dropdown" style="cursor: pointer;">
                 {{ goal.name }}
               </div>
+              <ul class="dropdown-menu">
+                <li @click="showGoalChangeForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 이름 변경</li>
+                <li class="dropdown-item" style="cursor: pointer;">Menu item</li>
+                <li class="dropdown-item" style="cursor: pointer;">Menu item</li>
+              </ul>
+
               <div  class="d-flex align-items-center" >
                 <div v-if="goal.goalStatus" class="oval-label px-1">
                   <span class="label-text">{{ goal.goalStatus }}</span>
@@ -53,24 +59,21 @@
               </div>
             </div>
 
-            <div v-if="goal.showForm" class="border px-1 py-2" style="width: 80%;">
-              <form>
-                <div class="mb-2">
-                  <label class="form-label">목표 이름 변경</label>
-                  <div class="input-group">
-                    <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요">
-                    <button @click="changeName(goal)" class="btn btn-outline-secondary form-btn" type="button">변경</button>
-                  </div>
-                </div>
-                <div class="mb-1">
+            <div v-if="goal.showGoalChangeForm" class="border px-1 py-1" style="width: 80%;">
+              <label class="form-label">목표 이름 변경</label>
+              <div class="input-group">
+                <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요">
+                <button @click="changeName(goal)" class="btn btn-secondary form-btn" type="button">변경</button>
+              </div>
+            </div>
+
+                <!-- <div class="mb-1">
                   <label class="form-label">목표 기간 추가</label>
                   <div class="input-group">
                     <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요">
                     <button class="btn btn-outline-secondary form-btn" type="button">변경</button>  
                   </div>
-                </div>
-              </form>
-            </div>
+                </div> -->
 
             <div
               :id="'collapse' + index"
@@ -147,8 +150,7 @@ export default {
 
     showGoalChangeForm(goal) {
       this.newGoalName = '';
-      this.newGoalPeriod = null;
-      goal.showForm = !goal.showForm;
+      goal.showGoalChangeForm = !goal.showGoalChangeForm;
     },
 
     async createGoal() {
@@ -228,7 +230,7 @@ export default {
   }
 
   .form-label {
-    font-size: 1.5vw;
+    font-size: 1.25vw;
   }
 
   .form-control {
