@@ -10,7 +10,7 @@
         </button>
     </div>
     
-    <Goals @addGoal="addGoal" :goals="goals"/>
+    <Goals @addGoal="addGoal" :calendarId="calendarId" :yearMonth="getFormattedYearMonth()" :goals="goals"/>
     <CalendarSchedule :year="year" :month="month" />
   </div>
 </template>
@@ -28,6 +28,7 @@ export default {
   },
   data() {
     return {
+      calendarId: 0,
       year: new Date().getFullYear(),
       month: new Date().getMonth() + 1,
       goals: [],
@@ -67,7 +68,12 @@ export default {
       const yearMonth = this.getFormattedYearMonth();
       try {
         const response = await getCalendarAndGoals({ yearMonth });
-        this.goals = response.data.goalResponses;
+
+        this.calendarId = response.data.id;
+        const goalResponses = response.data.goalResponses;
+        this.goals = goalResponses.map(item => {
+          return { ...item, showForm: false };
+        })
       } catch (error) {
         this.handleFetchError(error, yearMonth);
       }
@@ -84,9 +90,10 @@ export default {
       console.log(`오류가 발생했습니다: ${error.message}`);
     },
 
-    provideCalendar(yearMonth) {
+    async provideCalendar(yearMonth) {
       if (this.year === new Date().getFullYear() && this.month === new Date().getMonth() + 1) {
-        saveCalendar(yearMonth);
+        const response = await saveCalendar(yearMonth);
+        this.calendarId = response.data.calendarId;
       }
     }
   },

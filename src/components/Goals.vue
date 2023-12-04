@@ -15,15 +15,15 @@
     <div v-if="isShowGoalForm" class="goal-form border px-2 py-2">
       <form @submit.prevent="addGoal">
         <div class="mb-1">
-          <label for="goalName" class="form-label">목표 이름</label>
-          <input v-model="newGoalName" type="text" class="form-control" id="goalName" placeholder="새로운 목표를 입력하세요">
+          <label class="form-label">목표 이름</label>
+          <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 목표를 입력하세요">
         </div>
         <div class="mb-2">
-          <label for="goalPeriod" class="form-label">기간</label>
-          <input v-model.number="newGoalPeriod" type="number" class="form-control" id="goalPeriod" placeholder="목표의 기간(month)을 입력하세요">
+          <label class="form-label">기간</label>
+          <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요">
         </div>
         <div class="text-center">
-          <button type="submit" class="btn btn-primary goal-form-btn">추가</button>
+          <button type="submit" class="btn btn-primary form-btn">추가</button>
         </div>
       </form>
     </div>
@@ -33,25 +33,45 @@
         <div class="accordion" :id="'accordionExample' + index">
           <div class="accordion-item">
             <div class="accordion-header d-flex justify-content-between align-items-center">
-              <div class="d-flex align-items-center" style="cursor: pointer;">
-                <div class="accordion-name">
-                  {{ goal.name }}
-                </div>
-                <div v-if="goal.goalStatus" class="oval-label mx-1">
+              <div @click="showGoalChangeForm(goal)" class="accordion-name text-break px-1" style="cursor: pointer;">
+                {{ goal.name }}
+              </div>
+              <div  class="d-flex align-items-center" >
+                <div v-if="goal.goalStatus" class="oval-label px-1">
                   <span class="label-text">{{ goal.goalStatus }}</span>
                 </div>
+                <button
+                  class="btn collapsed"
+                  type="button"
+                  :data-bs-toggle="'collapse'"
+                  :data-bs-target="'#collapse' + index"
+                  :aria-expanded="false"
+                  :aria-controls="'collapse' + index"
+                >
+                  <i class="bi bi-chevron-down"></i>
+                </button>
               </div>
-              <button
-                class="btn collapsed"
-                type="button"
-                :data-bs-toggle="'collapse'"
-                :data-bs-target="'#collapse' + index"
-                :aria-expanded="false"
-                :aria-controls="'collapse' + index"
-              >
-                <i class="bi bi-chevron-down"></i>
-              </button>
             </div>
+
+            <div v-if="goal.showForm" class="border px-1 py-2" style="width: 80%;">
+              <form>
+                <div class="mb-2">
+                  <label class="form-label">목표 이름 변경</label>
+                  <div class="input-group">
+                    <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요">
+                    <button @click="changeName(goal)" class="btn btn-outline-secondary form-btn" type="button">변경</button>
+                  </div>
+                </div>
+                <div class="mb-1">
+                  <label class="form-label">목표 기간 추가</label>
+                  <div class="input-group">
+                    <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요">
+                    <button class="btn btn-outline-secondary form-btn" type="button">변경</button>  
+                  </div>
+                </div>
+              </form>
+            </div>
+
             <div
               :id="'collapse' + index"
               class="accordion-collapse collapse"
@@ -79,12 +99,14 @@
 </template>
 
 <script>
-import { saveGoal } from '@/api/goals.js';
+import { saveGoal, changeGoalName } from '@/api/goals.js';
 
 export default {
   name: 'Goals',
   props: {
-      goals: Array
+    calendarId: Number,
+    yearMonth: String,
+    goals: Array
   },
   data() {
     return {
@@ -123,6 +145,12 @@ export default {
       }
     },
 
+    showGoalChangeForm(goal) {
+      this.newGoalName = '';
+      this.newGoalPeriod = null;
+      goal.showForm = !goal.showForm;
+    },
+
     async createGoal() {
         try {
           const response = await saveGoal( this.newGoalName, this.makeYearMonths());
@@ -147,8 +175,24 @@ export default {
       }
 
       return yearMonths;
-    }
+    },
+
+    async changeName(goal) {
+      try {
+        const response = await changeGoalName( {
+          calendarId: this.calendarId,
+          goalId: goal.id,
+          yearMonth: this.yearMonth,
+          goalName: goal.name,
+          newGoalName: this.newGoalName
+        });
+        goal.name = response.data.newGoalName;
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
   },
+
 };
 </script>
 
@@ -186,9 +230,9 @@ export default {
     font-size: 1.0vw;
   }
 
-  .goal-form-btn {
-    font-size: 1.0vw;
-    padding: 3px 6px;
+  .form-btn {
+    font-size: 1.25vw;
+    padding: 2px 4px;
   }
 
   button {
