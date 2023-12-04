@@ -12,7 +12,7 @@
       </button>
     </div>
 
-    <div v-if="showForm" class="goal-form border px-2 py-2">
+    <div v-if="isShowGoalForm" class="goal-form border px-2 py-2">
       <form @submit.prevent="addGoal">
         <div class="mb-1">
           <label for="goalName" class="form-label">목표 이름</label>
@@ -33,11 +33,11 @@
         <div class="accordion" :id="'accordionExample' + index">
           <div class="accordion-item">
             <div class="accordion-header d-flex justify-content-between align-items-center">
-              <div class="d-flex align-items-center">
+              <div class="d-flex align-items-center" style="cursor: pointer;">
                 <div class="accordion-name">
                   {{ goal.name }}
                 </div>
-                <div class="oval-label mx-1">
+                <div v-if="goal.goalStatus" class="oval-label mx-1">
                   <span class="label-text">{{ goal.goalStatus }}</span>
                 </div>
               </div>
@@ -63,7 +63,7 @@
                     <div class="accordion-name">
                       {{ subGoal.name }}
                     </div>
-                    <div class="oval-label mx-1">
+                    <div v-if="subGoal.subGoalStatus" class="oval-label mx-1">
                       <span class="label-text">{{ subGoal.subGoalStatus }}</span>
                     </div>
                   </div>
@@ -79,6 +79,8 @@
 </template>
 
 <script>
+import { saveGoal } from '@/api/goals.js';
+
 export default {
   name: 'Goals',
   props: {
@@ -87,7 +89,7 @@ export default {
   data() {
     return {
       showAll: false,
-      showForm: false,
+      isShowGoalForm: false,
       newGoalName: '',
       newGoalPeriod: null,
     };
@@ -105,19 +107,47 @@ export default {
     showGoalForm() {
       this.newGoalName = '';
       this.newGoalPeriod = null;
-      this.showForm = !this.showForm;
+      this.isShowGoalForm = !this.isShowGoalForm;
     },
     
-    addGoal() {
+    async addGoal() {
       if (this.newGoalName.trim() !== '' && Number.isInteger(this.newGoalPeriod) && this.newGoalPeriod > 0) {
+        const data = await this.createGoal();
         const newGoal = {
-          name: this.newGoalName,
-          goalStatus: 'TODO',
+          id: data.goalId,
+          name: data.goalName,
+          goalStatus: 'TODO'
         };
         this.$emit('addGoal', newGoal);
-        this.showForm = false;
+        this.isShowGoalForm = false;
       }
     },
+
+    async createGoal() {
+        try {
+          const response = await saveGoal( this.newGoalName, this.makeYearMonths());
+          return response.data;
+        } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+        }
+    },
+
+    makeYearMonths() {
+      const date = new Date();
+      const yearMonths = [];
+
+      for (let i = 0; i < this.newGoalPeriod; i++) {
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const formattedDate = `${year}-${month.toString().padStart(2, '0')}`;
+        
+        yearMonths.push(formattedDate);
+
+        date.setMonth(date.getMonth() + 1);
+      }
+
+      return yearMonths;
+    }
   },
 };
 </script>
