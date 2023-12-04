@@ -207,9 +207,9 @@ export default {
       console.log(`오류가 발생했습니다: ${error.message}`);
     },
 
-    provideSchedule (date) {
+    async provideSchedule (date) {
       if (this.year === new Date().getFullYear() && this.month === new Date().getMonth() + 1 && this.day === new Date().getDate()) {
-        saveSchedule(date);
+        await saveSchedule(date);
         this.$router.push({
           path: '/schedule',
           query: {
