@@ -209,6 +209,11 @@ export default {
   font-size: 1.0vw;
  }
 
+ .accordion-name:hover {
+    color: #aeac8d; 
+    transition: background-color 0.3s; 
+  }
+
  @media screen and (max-width: 700px) { 
   .container {
     font-size: 1.2vw;
