@@ -32,21 +32,26 @@
       <div v-for="(goal, index) in visibleGoals" :key="index" class="col-6">
         <div class="accordion" :id="'accordionExample' + index">
           <div class="accordion-item">
-            <h2 class="accordion-header">
+            <div class="accordion-header d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center">
+                <div class="accordion-name">
+                  {{ goal.name }}
+                </div>
+                <div class="oval-label mx-1">
+                  <span class="label-text">{{ goal.goalStatus }}</span>
+                </div>
+              </div>
               <button
-                class="accordion-button collapsed"
+                class="btn collapsed"
                 type="button"
                 :data-bs-toggle="'collapse'"
                 :data-bs-target="'#collapse' + index"
                 :aria-expanded="false"
                 :aria-controls="'collapse' + index"
               >
-                  {{ goal.name }}
-                  <div class="oval-label mx-2">
-                    <span class="label-text">{{ goal.goalStatus }}</span>
-                  </div>
+                <i class="bi bi-chevron-down"></i>
               </button>
-            </h2>
+            </div>
             <div
               :id="'collapse' + index"
               class="accordion-collapse collapse"
@@ -54,9 +59,13 @@
             >
               <div class="accordion-body">
                 <div v-for="(subGoal, index) in goal.subGoalResponses" :key="index">
-                  {{ subGoal.name }}
-                  <div class="oval-label mx-2">
-                    <span class="label-text">{{ subGoal.subGoalStatus }}</span>
+                  <div class="d-flex align-items-center">
+                    <div class="accordion-name">
+                      {{ subGoal.name }}
+                    </div>
+                    <div class="oval-label mx-1">
+                      <span class="label-text">{{ subGoal.subGoalStatus }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -100,7 +109,7 @@ export default {
     },
     
     addGoal() {
-      if (this.newGoalName.trim() !== '' && Number.isInteger(this.newGoalPeriod) && this.newGoalPeriod >= 0) {
+      if (this.newGoalName.trim() !== '' && Number.isInteger(this.newGoalPeriod) && this.newGoalPeriod > 0) {
         const newGoal = {
           name: this.newGoalName,
           goalStatus: 'TODO',
@@ -120,6 +129,10 @@ export default {
 
  .goal-form {
     width: 40%;
+ }
+
+ .accordion-name {
+  font-size: 1.0vw;
  }
 
  @media screen and (max-width: 700px) { 
@@ -150,15 +163,11 @@ export default {
 
   button {
     font-size: 2.0vw;
+    padding: 3px 6px;
   }
 
-  .accordion-button {
-    padding: 4% 8%;
-    font-size: 2.5vw;
-  }
-
-  .accordion-body {
-    font-size: 2.0vw;
+  .accordion-name {
+    font-size: 1.8vw;
   }
 
   .label-text {
