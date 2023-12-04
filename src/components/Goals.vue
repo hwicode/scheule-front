@@ -22,6 +22,9 @@
           <label class="form-label">기간</label>
           <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요">
         </div>
+        <div v-if="isAlertVisible" class="alert alert-warning" role="alert">
+          입력값이 잘못되었습니다.
+        </div>
         <div class="text-center">
           <button type="submit" class="btn btn-primary form-btn">추가</button>
         </div>
@@ -117,6 +120,7 @@ export default {
       isShowGoalForm: false,
       newGoalName: '',
       newGoalPeriod: null,
+      isAlertVisible: false,
     };
   },
   computed: {
@@ -136,8 +140,15 @@ export default {
     },
     
     async addGoal() {
-      if (this.newGoalName.trim() !== '' && Number.isInteger(this.newGoalPeriod) && this.newGoalPeriod > 0) {
-        const data = await this.createGoal();
+      if (this.newGoalName.trim() === '' || !Number.isInteger(this.newGoalPeriod) || this.newGoalPeriod <= 0) {
+        this.isAlertVisible = true;
+        setTimeout(() => {
+          this.isAlertVisible = false;
+        }, 1500);
+        return;
+      }
+
+      const data = await this.createGoal();
         const newGoal = {
           id: data.goalId,
           name: data.goalName,
@@ -145,7 +156,6 @@ export default {
         };
         this.$emit('addGoal', newGoal);
         this.isShowGoalForm = false;
-      }
     },
 
     showGoalChangeForm(goal) {
@@ -158,7 +168,7 @@ export default {
           const response = await saveGoal( this.newGoalName, this.makeYearMonths());
           return response.data;
         } catch (error) {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+          console.log(`오류가 발생했습니다: ${error.message}`);
         }
     },
 
@@ -237,6 +247,11 @@ export default {
     font-size: 1.0vw;
   }
 
+  .alert {
+    font-size: 1.25vw;
+    padding: 6px 8px;
+  }
+
   .form-btn {
     font-size: 1.25vw;
     padding: 2px 4px;
@@ -253,6 +268,15 @@ export default {
 
   .label-text {
     font-size: 1.0vw;
+  }
+
+  .dropdown-menu {
+    font-size: 1.0vw;
+    min-width: 3rem;
+  }
+
+  .dropdown-item {
+    padding: 4px 8px;
   }
 
 }
