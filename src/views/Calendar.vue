@@ -98,7 +98,12 @@ export default {
 </script>
 
 <style scoped>
-.btn {
-  --bs-btn-font-size: 1.25vw;
-}
+
+ @media screen and (max-width: 700px) { 
+  .btn {
+    font-size: 2.0vw;
+    padding: 1px 8px;
+  }
+ }
+
 </style>
