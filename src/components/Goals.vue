@@ -23,7 +23,8 @@
           <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요" required>
         </div>
 
-        <AlertWarning @turnOff="isGoalCreateAlert = $event" message="입력값이 잘못되었습니다." :isVisible="isGoalCreateAlert"/>
+        <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="입력값이 잘못되었습니다." :isVisible="isGoalCreateWarningAlert"/>
+        <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 중복되었습니다." :isVisible="isGoalDuplicatedAlert"/>
 
         <div class="text-center">
           <button type="submit" class="btn btn-primary form-btn">추가</button>
@@ -74,6 +75,9 @@
                   <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
                   <button type="submit" class="btn btn-secondary form-btn">변경</button>
                 </div>
+
+                
+
               </form>
             </div>
 
@@ -88,7 +92,7 @@
                   <button type="submit" class="btn btn-secondary form-btn">변경</button>
                 </div>
 
-                <AlertSuccess @turnOff="isGoalPeriodSuccessAlert = $event" message="목표의 기간이 추가되었습니다!" :isVisible="isGoalPeriodSuccessAlert"/>
+          
 
               </form>
             </div>
@@ -121,7 +125,6 @@
 
 <script>
 import AlertWarning from "@/components/basic/AlertWarning.vue";
-import AlertSuccess from "@/components/basic/AlertSuccess.vue";
 
 import { saveGoal, changeGoalName, addGoalToCalendars } from '@/api/goals.js';
 
@@ -129,7 +132,6 @@ export default {
   name: 'Goals',
   components: {
     AlertWarning: AlertWarning,
-    AlertSuccess: AlertSuccess,
   },
   props: {
     calendarId: Number,
@@ -142,8 +144,7 @@ export default {
       isShowGoalForm: false,
       newGoalName: '',
       newGoalPeriod: null,
-      isGoalCreateAlert: false,
-      isGoalPeriodSuccessAlert: false,
+      isGoalCreateWarningAlert: false, isGoalDuplicatedAlert: false,
     };
   },
   computed: {
@@ -174,11 +175,13 @@ export default {
     
     async addGoal() {
       if (!this.checkNumberForm()) {
-        this.isGoalCreateAlert = true;
+        this.isGoalCreateWarningAlert = true;
         return;
       }
 
       const data = await this.createGoal();
+      if (data == undefined) return;
+
       const newGoal = {
         id: data.goalId,
         name: data.goalName,
@@ -196,12 +199,15 @@ export default {
     },
 
     async createGoal() {
-        try {
-          const response = await saveGoal( this.newGoalName, this.makeYearMonths(new Date()));
-          return response.data;
-        } catch (error) {
-          console.log(`오류가 발생했습니다: ${error.message}`);
+      try {
+        const response = await saveGoal( this.newGoalName, this.makeYearMonths(new Date()));
+        return response.data;
+      } catch (error) {
+        if (this.handleGoalDuplicatedError(error)) {
+          return;
         }
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
     },
 
     makeYearMonths(date) {
@@ -218,6 +224,14 @@ export default {
       }
 
       return yearMonths;
+    },
+
+    handleGoalDuplicatedError(error) {
+      if (error.response && error.response.data.message === '캘린더에 목표가 중복되었습니다.') {
+          this.isGoalDuplicatedAlert = true;
+          return true;
+      }
+      return false;
     },
 
     async changeName(goal) {
