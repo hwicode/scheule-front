@@ -25,6 +25,7 @@
 
         <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="입력값이 잘못되었습니다." :isVisible="isGoalCreateWarningAlert"/>
         <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 중복되었습니다." :isVisible="isGoalDuplicatedAlert"/>
+        <AlertServerError @turnOff="isServerError = $event" :isVisible="isServerError"/>
 
         <div class="text-center">
           <button type="submit" class="btn btn-primary form-btn">추가</button>
@@ -125,6 +126,7 @@
 
 <script>
 import AlertWarning from "@/components/basic/AlertWarning.vue";
+import AlertServerError from "@/components/basic/AlertServerError.vue";
 
 import { saveGoal, changeGoalName, addGoalToCalendars } from '@/api/goals.js';
 
@@ -132,6 +134,7 @@ export default {
   name: 'Goals',
   components: {
     AlertWarning: AlertWarning,
+    AlertServerError: AlertServerError,
   },
   props: {
     calendarId: Number,
@@ -145,6 +148,7 @@ export default {
       newGoalName: '',
       newGoalPeriod: null,
       isGoalCreateWarningAlert: false, isGoalDuplicatedAlert: false,
+      isServerError: false,
     };
   },
   computed: {
@@ -206,6 +210,7 @@ export default {
         if (this.handleGoalDuplicatedError(error)) {
           return;
         }
+        this.isServerError = true;
         console.log(`오류가 발생했습니다: ${error.message}`);
       }
     },

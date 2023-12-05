@@ -1,14 +1,13 @@
 <template>
-    <div v-if="isVisible" class="alert alert-success" role="alert">
-        {{ message }}
+    <div v-if="isVisible" class="alert alert-danger" role="alert">
+        알 수 없는 이유로 에러가 발생했습니다!
     </div>
 </template>
   
 <script>
 export default {
-    name: 'AlertSuccess',
+    name: 'AlertServerError',
     props: {
-        message: String,
         isVisible: Boolean,
     },
     watch: {
