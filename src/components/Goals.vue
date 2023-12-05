@@ -191,7 +191,7 @@ export default {
     },
     
     async addGoal() {
-      if (!this.checkNumberForm()) {
+      if (!Number.isInteger(this.newGoalPeriod) || this.newGoalPeriod <= 0 || this.newGoalPeriod > 24) {
         this.isGoalCreateWarningAlert = true;
         return;
       }
@@ -208,23 +208,13 @@ export default {
       this.isShowGoalForm = false;
     },
 
-    checkNumberForm() {
-      if (!Number.isInteger(this.newGoalPeriod) || this.newGoalPeriod <= 0 || this.newGoalPeriod > 24) {
-        return false;
-      }
-      return true;
-    },
-
     async createGoal() {
       try {
         const response = await saveGoal( this.newGoalName, this.makeYearMonths(new Date()));
         return response.data;
       } catch (error) {
-        if (this.handleGoalDuplicatedError(error)) {
-          return;
-        }
-        this.isServerError = true;
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleGoalDuplicatedError(error);
+        return;
       }
     },
 
@@ -247,9 +237,10 @@ export default {
     handleGoalDuplicatedError(error) {
       if (error.response && error.response.data.message === '캘린더에 목표가 중복되었습니다.') {
           this.isGoalDuplicatedAlert = true;
-          return true;
-      }
-      return false;
+          return;
+        }
+        this.isServerError = true;
+        console.log(`오류가 발생했습니다: ${error.message}`);
     },
 
     async changeName(goal) {
@@ -264,16 +255,13 @@ export default {
         goal.name = response.data.newGoalName;
         goal.showGoalChangeForm = false;
       } catch (error) {
-        if (this.handleGoalDuplicatedError(error)) {
-          return;
-        }
-        this.isServerError = true;
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleGoalDuplicatedError(error);
+        return;
       }
     },
 
     async addGoalPeriod(goal) {
-      if (!this.checkNumberForm()) {
+      if (!Number.isInteger(this.newGoalPeriod) || this.newGoalPeriod <= 0 || this.newGoalPeriod > 24) {
         this.isGoalCreateWarningAlert = true;
         return;
       }
@@ -284,11 +272,8 @@ export default {
         await addGoalToCalendars(goal.id, this.makeYearMonths(date));
         goal.showGoalPeriodForm = false;
       } catch (error) {
-        if (this.handleGoalDuplicatedError(error)) {
-          return;
-        }
-        this.isServerError = true;
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleGoalDuplicatedError(error);
+        return;
       }
     },
   },
