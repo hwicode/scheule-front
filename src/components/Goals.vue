@@ -23,8 +23,8 @@
           <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요" required>
         </div>
 
-        <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="입력값이 잘못되었습니다." :isVisible="isGoalCreateWarningAlert"/>
-        <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 중복되었습니다." :isVisible="isGoalDuplicatedAlert"/>
+        <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="목표 기간은 1~24까지의 수만 가능합니다." :isVisible="isGoalCreateWarningAlert"/>
+        <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
         <AlertServerError @turnOff="isServerError = $event" :isVisible="isServerError"/>
 
         <div class="text-center">
@@ -76,10 +76,11 @@
                   <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
                   <button type="submit" class="btn btn-secondary form-btn">변경</button>
                 </div>
-
-                
-
               </form>
+
+              <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 중복되었습니다." :isVisible="isGoalDuplicatedAlert"/>
+              <AlertServerError @turnOff="isServerError = $event" :isVisible="isServerError"/>
+
             </div>
 
             <div v-if="goal.showGoalPeriodForm" class="border px-1 py-1" style="width: 80%;">
@@ -93,7 +94,9 @@
                   <button type="submit" class="btn btn-secondary form-btn">변경</button>
                 </div>
 
-          
+                <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="목표 기간은 1~24까지의 수만 가능합니다." :isVisible="isGoalCreateWarningAlert"/>
+                <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
+                <AlertServerError @turnOff="isServerError = $event" :isVisible="isServerError"/>
 
               </form>
             </div>
@@ -168,13 +171,23 @@ export default {
     },
 
     showGoalChangeForm(goal) {
+      this.closeAllGoalChangeForm();
       this.newGoalName = '';
       goal.showGoalChangeForm = !goal.showGoalChangeForm;
     },
 
+    closeAllGoalChangeForm() {
+      this.goals.forEach(goal => goal.showGoalChangeForm = false);
+    },
+
     showGoalPeriodForm(goal) {
+      this.closeAllGoalPeriodForm();
       this.newGoalPeriod = null;
       goal.showGoalPeriodForm = !goal.showGoalPeriodForm;
+    },
+
+    closeAllGoalPeriodForm() {
+      this.goals.forEach(goal => goal.showGoalPeriodForm = false);
     },
     
     async addGoal() {
@@ -196,7 +209,7 @@ export default {
     },
 
     checkNumberForm() {
-      if (!Number.isInteger(this.newGoalPeriod) || this.newGoalPeriod <= 0) {
+      if (!Number.isInteger(this.newGoalPeriod) || this.newGoalPeriod <= 0 || this.newGoalPeriod > 24) {
         return false;
       }
       return true;
@@ -249,21 +262,32 @@ export default {
           newGoalName: this.newGoalName
         });
         goal.name = response.data.newGoalName;
+        goal.showGoalChangeForm = false;
       } catch (error) {
+        if (this.handleGoalDuplicatedError(error)) {
+          return;
+        }
+        this.isServerError = true;
         console.log(`오류가 발생했습니다: ${error.message}`);
       }
     },
 
     async addGoalPeriod(goal) {
       if (!this.checkNumberForm()) {
+        this.isGoalCreateWarningAlert = true;
         return;
       }
+
       const date = new Date();
       date.setMonth(date.getMonth() + 1);
       try {
         await addGoalToCalendars(goal.id, this.makeYearMonths(date));
-        this.isGoalPeriodSuccessAlert = true;
+        goal.showGoalPeriodForm = false;
       } catch (error) {
+        if (this.handleGoalDuplicatedError(error)) {
+          return;
+        }
+        this.isServerError = true;
         console.log(`오류가 발생했습니다: ${error.message}`);
       }
     },
