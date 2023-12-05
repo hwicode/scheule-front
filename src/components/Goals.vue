@@ -16,15 +16,15 @@
       <form @submit.prevent="addGoal">
         <div class="mb-1">
           <label class="form-label">목표 이름</label>
-          <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 목표를 입력하세요">
+          <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 목표를 입력하세요" required>
         </div>
         <div class="mb-2">
           <label class="form-label">기간</label>
-          <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요">
+          <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요" required>
         </div>
-        <div v-if="isAlertVisible" class="alert alert-warning" role="alert">
-          입력값이 잘못되었습니다.
-        </div>
+
+        <AlertWarning @turnOff="isGoalCreateAlert = $event" message="입력값이 잘못되었습니다." :isVisible="isGoalCreateAlert"/>
+
         <div class="text-center">
           <button type="submit" class="btn btn-primary form-btn">추가</button>
         </div>
@@ -71,7 +71,7 @@
                   <button @click="goal.showGoalChangeForm = !goal.showGoalChangeForm;" type="button" class="btn-close"></button>
                 </div>
                 <div class="input-group">
-                  <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요">
+                  <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
                   <button type="submit" class="btn btn-secondary form-btn">변경</button>
                 </div>
               </form>
@@ -84,12 +84,12 @@
                   <button @click="goal.showGoalPeriodForm = !goal.showGoalPeriodForm;" type="button" class="btn-close"></button>
                 </div>
                 <div class="input-group">
-                  <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요">
+                  <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요" required>
                   <button type="submit" class="btn btn-secondary form-btn">변경</button>
                 </div>
-                <div v-if="isGoalAddPeriod" class="alert alert-primary" role="alert">
-                  목표의 기간이 추가되었습니다!
-                </div>
+
+                <AlertSuccess @turnOff="isGoalPeriodSuccessAlert = $event" message="목표의 기간이 추가되었습니다!" :isVisible="isGoalPeriodSuccessAlert"/>
+
               </form>
             </div>
 
@@ -120,10 +120,17 @@
 </template>
 
 <script>
+import AlertWarning from "@/components/basic/AlertWarning.vue";
+import AlertSuccess from "@/components/basic/AlertSuccess.vue";
+
 import { saveGoal, changeGoalName, addGoalToCalendars } from '@/api/goals.js';
 
 export default {
   name: 'Goals',
+  components: {
+    AlertWarning: AlertWarning,
+    AlertSuccess: AlertSuccess,
+  },
   props: {
     calendarId: Number,
     yearMonth: String,
@@ -135,8 +142,8 @@ export default {
       isShowGoalForm: false,
       newGoalName: '',
       newGoalPeriod: null,
-      isAlertVisible: false,
-      isGoalAddPeriod: false,
+      isGoalCreateAlert: false,
+      isGoalPeriodSuccessAlert: false,
     };
   },
   computed: {
@@ -154,25 +161,6 @@ export default {
       this.newGoalPeriod = null;
       this.isShowGoalForm = !this.isShowGoalForm;
     },
-    
-    async addGoal() {
-      if (this.newGoalName.trim() === '' || !Number.isInteger(this.newGoalPeriod) || this.newGoalPeriod <= 0) {
-        this.isAlertVisible = true;
-        setTimeout(() => {
-          this.isAlertVisible = false;
-        }, 1500);
-        return;
-      }
-
-      const data = await this.createGoal();
-        const newGoal = {
-          id: data.goalId,
-          name: data.goalName,
-          goalStatus: 'TODO'
-        };
-        this.$emit('addGoal', newGoal);
-        this.isShowGoalForm = false;
-    },
 
     showGoalChangeForm(goal) {
       this.newGoalName = '';
@@ -182,6 +170,29 @@ export default {
     showGoalPeriodForm(goal) {
       this.newGoalPeriod = null;
       goal.showGoalPeriodForm = !goal.showGoalPeriodForm;
+    },
+    
+    async addGoal() {
+      if (!this.checkNumberForm()) {
+        this.isGoalCreateAlert = true;
+        return;
+      }
+
+      const data = await this.createGoal();
+      const newGoal = {
+        id: data.goalId,
+        name: data.goalName,
+        goalStatus: 'TODO'
+      };
+      this.$emit('addGoal', newGoal);
+      this.isShowGoalForm = false;
+    },
+
+    checkNumberForm() {
+      if (!Number.isInteger(this.newGoalPeriod) || this.newGoalPeriod <= 0) {
+        return false;
+      }
+      return true;
     },
 
     async createGoal() {
@@ -225,14 +236,14 @@ export default {
     },
 
     async addGoalPeriod(goal) {
+      if (!this.checkNumberForm()) {
+        return;
+      }
       const date = new Date();
       date.setMonth(date.getMonth() + 1);
       try {
         await addGoalToCalendars(goal.id, this.makeYearMonths(date));
-        this.isGoalAddPeriod = true;
-        setTimeout(() => {
-          this.isGoalAddPeriod = false;
-        }, 1500);
+        this.isGoalPeriodSuccessAlert = true;
       } catch (error) {
         console.log(`오류가 발생했습니다: ${error.message}`);
       }
@@ -279,11 +290,6 @@ export default {
 
   .form-control {
     font-size: 1.0vw;
-  }
-
-  .alert {
-    font-size: 1.25vw;
-    padding: 6px 8px;
   }
 
   .form-btn {
