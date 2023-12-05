@@ -13,5 +13,9 @@ function changeGoalName(dto) {
         newGoalName: dto.newGoalName
     });
 }
+
+function addGoalToCalendars(goalId, yearMonths) {
+    return api.post(`/calendars/goals/${goalId}`, { yearMonths: yearMonths });
+}
   
-export { saveGoal, changeGoalName };
+export { saveGoal, changeGoalName, addGoalToCalendars };

@@ -41,8 +41,10 @@
               </div>
               <ul class="dropdown-menu">
                 <li @click="showGoalChangeForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 이름 변경</li>
-                <li class="dropdown-item" style="cursor: pointer;">Menu item</li>
-                <li class="dropdown-item" style="cursor: pointer;">Menu item</li>
+                <li @click="showGoalPeriodForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 기간 추가</li>
+                <li class="dropdown-item" style="cursor: pointer;">목표 상태 변경</li>
+                <li class="dropdown-item" style="cursor: pointer;">목표 삭제</li>
+                <li class="dropdown-item" style="cursor: pointer;">서브 목표 생성</li>
               </ul>
 
               <div  class="d-flex align-items-center" >
@@ -63,20 +65,33 @@
             </div>
 
             <div v-if="goal.showGoalChangeForm" class="border px-1 py-1" style="width: 80%;">
-              <label class="form-label">목표 이름 변경</label>
-              <div class="input-group">
-                <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요">
-                <button @click="changeName(goal)" class="btn btn-secondary form-btn" type="button">변경</button>
-              </div>
+              <form @submit.prevent="changeName(goal)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">목표 이름 변경</label>
+                  <button @click="goal.showGoalChangeForm = !goal.showGoalChangeForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="input-group">
+                  <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요">
+                  <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                </div>
+              </form>
             </div>
 
-                <!-- <div class="mb-1">
+            <div v-if="goal.showGoalPeriodForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="addGoalPeriod(goal)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
                   <label class="form-label">목표 기간 추가</label>
-                  <div class="input-group">
-                    <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요">
-                    <button class="btn btn-outline-secondary form-btn" type="button">변경</button>  
-                  </div>
-                </div> -->
+                  <button @click="goal.showGoalPeriodForm = !goal.showGoalPeriodForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="input-group">
+                  <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요">
+                  <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                </div>
+                <div v-if="isGoalAddPeriod" class="alert alert-primary" role="alert">
+                  목표의 기간이 추가되었습니다!
+                </div>
+              </form>
+            </div>
 
             <div
               :id="'collapse' + index"
@@ -105,7 +120,7 @@
 </template>
 
 <script>
-import { saveGoal, changeGoalName } from '@/api/goals.js';
+import { saveGoal, changeGoalName, addGoalToCalendars } from '@/api/goals.js';
 
 export default {
   name: 'Goals',
@@ -121,6 +136,7 @@ export default {
       newGoalName: '',
       newGoalPeriod: null,
       isAlertVisible: false,
+      isGoalAddPeriod: false,
     };
   },
   computed: {
@@ -163,17 +179,21 @@ export default {
       goal.showGoalChangeForm = !goal.showGoalChangeForm;
     },
 
+    showGoalPeriodForm(goal) {
+      this.newGoalPeriod = null;
+      goal.showGoalPeriodForm = !goal.showGoalPeriodForm;
+    },
+
     async createGoal() {
         try {
-          const response = await saveGoal( this.newGoalName, this.makeYearMonths());
+          const response = await saveGoal( this.newGoalName, this.makeYearMonths(new Date()));
           return response.data;
         } catch (error) {
           console.log(`오류가 발생했습니다: ${error.message}`);
         }
     },
 
-    makeYearMonths() {
-      const date = new Date();
+    makeYearMonths(date) {
       const yearMonths = [];
 
       for (let i = 0; i < this.newGoalPeriod; i++) {
@@ -199,6 +219,20 @@ export default {
           newGoalName: this.newGoalName
         });
         goal.name = response.data.newGoalName;
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
+
+    async addGoalPeriod(goal) {
+      const date = new Date();
+      date.setMonth(date.getMonth() + 1);
+      try {
+        await addGoalToCalendars(goal.id, this.makeYearMonths(date));
+        this.isGoalAddPeriod = true;
+        setTimeout(() => {
+          this.isGoalAddPeriod = false;
+        }, 1500);
       } catch (error) {
         console.log(`오류가 발생했습니다: ${error.message}`);
       }
