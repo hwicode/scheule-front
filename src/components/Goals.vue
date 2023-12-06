@@ -46,7 +46,7 @@
                 <li @click="showGoalPeriodForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 기간 추가</li>
                 <li @click="showGoalStatusForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 상태 변경</li>
                 <li @click="showGoalDeleteForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 삭제</li>
-                <li class="dropdown-item" style="cursor: pointer;">서브 목표 생성</li>
+                <li @click="showSubGoalCreateForm(goal)" class="dropdown-item" style="cursor: pointer;">서브 목표 생성</li>
               </ul>
 
               <div  class="d-flex align-items-center" >
@@ -144,6 +144,21 @@
               <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
+            <div v-if="goal.showSubGoalCreateForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="createSubGoal(goal)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">서브 목표 생성</label>
+                  <button @click="goal.showSubGoalCreateForm = !goal.showSubGoalCreateForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="input-group">
+                  <input v-model="newSubGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
+                  <button type="submit" class="btn btn-secondary form-btn">추가</button>
+                </div>
+              </form>
+              <AlertWarning @turnOff="isSubGoalDuplicatedAlert = $event" message="캘린더에 같은 이름의 서브 목표가 이미 있습니다." :isVisible="isSubGoalDuplicatedAlert"/>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
             <div
               :id="'collapse' + index"
               class="accordion-collapse collapse"
@@ -174,7 +189,7 @@
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 
-import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi } from '@/api/goals.js';
+import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi } from '@/api/goals.js';
 
 export default {
   name: 'Goals',
@@ -195,10 +210,12 @@ export default {
       newGoalName: '',
       newGoalPeriod: null,
       selectedStatus: null,
+      newSubGoalName: '',
 
       isServerErrorAlert: false,
       isGoalCreateWarningAlert: false, isGoalDuplicatedAlert: false,
       isNotAllToDoSubGoalAlert: false, isNotAllDoneSubGoalAlert: false,
+      isSubGoalDuplicatedAlert: false,
     };
   },
   computed: {
@@ -253,6 +270,15 @@ export default {
 
     closeAllGoalDeleteForm() {
       this.goals.forEach(goal => goal.showGoalDeleteForm = false);
+    },
+
+    showSubGoalCreateForm(goal) {
+      this.closeAllSubGoalCreateForm();
+      goal.showSubGoalCreateForm = !goal.showSubGoalCreateForm;
+    },
+
+    closeAllSubGoalCreateForm() {
+      this.goals.forEach(goal => goal.showSubGoalCreateForm = false);
     },
     
     async addGoal() {
@@ -377,6 +403,31 @@ export default {
     handleServerError(error) {
       this.isServerErrorAlert = true;
       console.log(`오류가 발생했습니다: ${error.message}`);
+    },
+
+    async createSubGoal(goal) {
+      try {
+        const response = await saveSubGoalApi(goal.id, this.newSubGoalName);
+        const newSubGoal = {
+          id: response.data.subGoalId,
+          name: response.data.subGoalName,
+          subGoalStatus: 'TODO',
+          goalId: goal.id
+        };
+        goal.subGoalResponses.push(newSubGoal);
+        goal.showSubGoalCreateForm = false;
+      } catch (error) {
+        this.handleCreateSubGoalError(error);
+        return;
+      }
+    },
+
+    handleCreateSubGoalError(error) {
+      if (error.response && error.response.data.message === '서브 목표가 중복되었습니다.') {
+          this.isSubGoalDuplicatedAlert = true;
+          return;
+      }
+      this.handleServerError();
     },
   },
 

@@ -25,5 +25,9 @@ function changeGoalStatusApi(goalId, goalStatus) {
 function deleteGoalApi(goalId) {
     return api.delete(`/goals/${goalId}`);
 }
-  
-export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi };
+
+function saveSubGoalApi(goalId, subGoalName) {
+    return api.post(`/goals/${goalId}/sub-goals`, { subGoalName: subGoalName });
+}
+
+export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi };

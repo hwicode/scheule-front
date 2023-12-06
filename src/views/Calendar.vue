@@ -93,6 +93,7 @@ export default {
           showGoalPeriodForm: false,
           showGoalStatusForm: false,
           showGoalDeleteForm: false,
+          showSubGoalCreateForm: false,
         };
       });
     },
