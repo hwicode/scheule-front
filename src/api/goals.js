@@ -21,5 +21,9 @@ function addGoalToCalendars(goalId, yearMonths) {
 function changeGoalStatusApi(goalId, goalStatus) {
     return api.patch(`/goals/${goalId}/status`, { goalStatus: goalStatus });
 }
+
+function deleteGoalApi(goalId) {
+    return api.delete(`/goals/${goalId}`);
+}
   
-export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi };
+export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi };

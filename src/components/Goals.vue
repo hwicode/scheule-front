@@ -39,13 +39,13 @@
           <div class="accordion-item">
             <div class="accordion-header d-flex justify-content-between align-items-center">
               <div class="accordion-name text-break px-1" data-bs-toggle="dropdown" style="cursor: pointer;">
-                {{ goal.name }}
+                {{ goal.name }}1
               </div>
               <ul class="dropdown-menu">
                 <li @click="showGoalChangeForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 이름 변경</li>
                 <li @click="showGoalPeriodForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 기간 추가</li>
                 <li @click="showGoalStatusForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 상태 변경</li>
-                <li class="dropdown-item" style="cursor: pointer;">목표 삭제</li>
+                <li @click="showGoalDeleteForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 삭제</li>
                 <li class="dropdown-item" style="cursor: pointer;">서브 목표 생성</li>
               </ul>
 
@@ -131,6 +131,19 @@
               <AlertWarning @turnOff="isNotAllDoneSubGoalAlert = $event" message="서브 목표가 전부 DONE 상태가 아닙니다." :isVisible="isNotAllDoneSubGoalAlert"/>
             </div>
 
+            <div v-if="goal.showGoalDeleteForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="deleteGoal(goal)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">목표 삭제</label>
+                  <button @click="goal.showGoalDeleteForm = !goal.showGoalDeleteForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="text-center">
+                  <button type="submit" class="btn btn-secondary form-btn">삭제</button>
+                </div>
+              </form>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
             <div
               :id="'collapse' + index"
               class="accordion-collapse collapse"
@@ -161,7 +174,7 @@
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 
-import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi } from '@/api/goals.js';
+import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi } from '@/api/goals.js';
 
 export default {
   name: 'Goals',
@@ -232,6 +245,15 @@ export default {
     closeAllGoalStatusForm() {
       this.goals.forEach(goal => goal.showGoalStatusForm = false);
     },
+
+    showGoalDeleteForm(goal) {
+      this.closeAllGoalDeleteForm();
+      goal.showGoalDeleteForm = !goal.showGoalDeleteForm;
+    },
+
+    closeAllGoalDeleteForm() {
+      this.goals.forEach(goal => goal.showGoalDeleteForm = false);
+    },
     
     async addGoal() {
       if (!Number.isInteger(this.newGoalPeriod) || this.newGoalPeriod <= 0 || this.newGoalPeriod > 24) {
@@ -282,8 +304,7 @@ export default {
           this.isGoalDuplicatedAlert = true;
           return;
       }
-      this.isServerErrorAlert = true;
-      console.log(`오류가 발생했습니다: ${error.message}`);
+      this.handleServerError();
     },
 
     async changeName(goal) {
@@ -340,6 +361,20 @@ export default {
           this.isGoalDuplicatedAlert = true;
           return;
       }
+      this.handleServerError();
+    },
+
+    async deleteGoal(goal) {
+      try {
+        await deleteGoalApi(goal.id);
+        this.$emit('deleteGoal', goal);
+      } catch (error) {
+        this.handleServerError(error);
+        return;
+      }
+    },
+
+    handleServerError(error) {
       this.isServerErrorAlert = true;
       console.log(`오류가 발생했습니다: ${error.message}`);
     },

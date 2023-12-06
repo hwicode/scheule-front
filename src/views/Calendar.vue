@@ -10,7 +10,7 @@
         </button>
     </div>
     
-    <Goals @addGoal="addGoal" :calendarId="calendarId" :yearMonth="getFormattedYearMonth()" :goals="goals"/>
+    <Goals @addGoal="addGoal" @deleteGoal="deleteGoal" :calendarId="calendarId" :yearMonth="getFormattedYearMonth()" :goals="goals"/>
     <CalendarSchedule :year="year" :month="month" />
   </div>
 </template>
@@ -64,6 +64,10 @@ export default {
       this.goals.push(goal);
     },
     
+    deleteGoal(goal) {
+      this.goals = this.goals.filter(item => item.id !== goal.id);
+    },
+    
     async fetchCalendarAndGoals() {
       const yearMonth = this.getFormattedYearMonth();
       try {
@@ -88,6 +92,7 @@ export default {
           showGoalChangeForm: false,
           showGoalPeriodForm: false,
           showGoalStatusForm: false,
+          showGoalDeleteForm: false,
         };
       });
     },
