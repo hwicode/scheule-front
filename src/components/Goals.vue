@@ -248,7 +248,6 @@
 <script>
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
-
 import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi, changeSubGoalStatusApi, deleteSubGoalApi } from '@/api/goals.js';
 
 export default {

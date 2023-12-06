@@ -1,69 +1,246 @@
 <template>
   <div>
-    <h4>To Do</h4>
-      <ul class="list-group">
-        <li v-for="(item, index) in items" :key="index" class="list-group-item">
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="fw-bold">{{ item.name }}</span>
-            <div>
-              <i v-if="item.taskStatus == 'TODO'" class="bi bi-circle mx-1"></i>
-              <i v-if="item.taskStatus == 'PROGRESS'" class="bi bi-dash-circle mx-1"></i>
-              <i v-if="item.taskStatus == 'DONE'" class="bi bi-check-circle-fill mx-1"></i>
-              <div class="oval-label mx-1 good">
-                <span v-if="item.priority == 'FIRST'" class="label-text good">우선순위 1</span>
-                <span v-if="item.priority == 'SECOND'" class="label-text normal">우선순위 2</span>
-                <span v-if="item.priority == 'THIRD'" class="label-text bad">우선순위 3</span>
-              </div>
-              <div class="oval-label mx-1 bad">
-                <span v-if="item.difficulty == 'HARD'" class="label-text good">난이도 상</span>
-                <span v-if="item.difficulty == 'NORMAL'" class="label-text normal">난이도 중</span>
-                <span v-if="item.difficulty == 'EASY'" class="label-text bad">난이도 하</span>
-              </div>
-              <div class="oval-label mx-1">
-                <span v-if="item.importance == 'FIRST'" class="label-text good">중요도 상</span>
-                <span v-if="item.importance == 'SECOND'" class="label-text normal">중요도 중</span>
-                <span v-if="item.importance == 'THIRD'" class="label-text bad">중요도 하</span>
-              </div>
+    <div class="d-flex align-items-center">
+      <h4>To Do</h4>
+      <button @click="showTaskForm" class="btn px-1">
+        <i class="bi bi-plus fs-4"></i>
+      </button>  
+    </div>
+
+    <div v-if="isShowTaskForm" class="border px-2 py-2">
+      <form @submit.prevent="addTask">
+        <div class="mb-2">
+          <label class="form-label fw-bold">과제 이름</label>
+          <input v-model="newTaskName" type="text" class="form-control" placeholder="새로운 과제를 입력하세요" required>
+        </div>
+
+        <label class="form-label fw-bold">어려움 점수</label>
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="form-check form-check-inline mx-4">
+            <input v-model="selectedTaskDifficulty" value="HARD" class="form-check-input" type="radio" name="flexRadioDefault1" id="flexRadioDefault3">
+            <label class="form-check-label" for="flexRadioDefault3">
+              Hard
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input v-model="selectedTaskDifficulty" value="NORMAL" class="form-check-input" type="radio" name="flexRadioDefault1" id="flexRadioDefault2">
+            <label class="form-check-label" for="flexRadioDefault2">
+              Normal
+            </label>
+          </div>
+          <div class="form-check form-check-inline mx-4">
+            <input v-model="selectedTaskDifficulty" value="EASY" class="form-check-input" type="radio" name="flexRadioDefault1" id="flexRadioDefault1">
+            <label class="form-check-label" for="flexRadioDefault1">
+              Easy
+            </label>
+          </div>
+        </div>
+
+        <label class="form-label fw-bold">긴급도</label>
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="form-check form-check-inline mx-4">
+            <input v-model="selectedTaskPriority" value="FIRST" class="form-check-input" type="radio" name="flexRadioDefault2" id="flexRadioDefault1">
+            <label class="form-check-label" for="flexRadioDefault1">
+              First
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input v-model="selectedTaskPriority" value="SECOND" class="form-check-input" type="radio" name="flexRadioDefault2" id="flexRadioDefault2">
+            <label class="form-check-label" for="flexRadioDefault2">
+              Second
+            </label>
+          </div>
+          <div class="form-check form-check-inline mx-4">
+            <input v-model="selectedTaskPriority" value="THIRD" class="form-check-input" type="radio" name="flexRadioDefault2" id="flexRadioDefault3">
+            <label class="form-check-label" for="flexRadioDefault3">
+              Third
+            </label>
+          </div>
+        </div>
+
+        <label class="form-label fw-bold">중요도</label>
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="form-check form-check-inline mx-4">
+            <input v-model="selectedTaskImportance" value="FIRST" class="form-check-input" type="radio" name="flexRadioDefault3" id="flexRadioDefault1">
+            <label class="form-check-label" for="flexRadioDefault1">
+              First
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input v-model="selectedTaskImportance" value="SECOND" class="form-check-input" type="radio" name="flexRadioDefault3" id="flexRadioDefault2">
+            <label class="form-check-label" for="flexRadioDefault2">
+              Second
+            </label>
+          </div>
+          <div class="form-check form-check-inline mx-4">
+            <input v-model="selectedTaskImportance" value="THIRD" class="form-check-input" type="radio" name="flexRadioDefault3" id="flexRadioDefault3">
+            <label class="form-check-label" for="flexRadioDefault3">
+              Third
+            </label>
+          </div>
+        </div>
+
+        <AlertWarning @turnOff="isTaskDuplicatedAlert = $event" message="계획표에 같은 이름의 과제가 이미 있습니다." :isVisible="isTaskDuplicatedAlert"/>
+        <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary form-btn">추가</button>
+        </div>
+      </form>
+    </div>
+
+    <ul class="list-group">
+      <li v-for="(item, index) in items" :key="index" class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-bold">{{ item.name }}</span>
+          <div>
+            <i v-if="item.taskStatus == 'TODO'" class="bi bi-circle mx-1"></i>
+            <i v-if="item.taskStatus == 'PROGRESS'" class="bi bi-dash-circle mx-1"></i>
+            <i v-if="item.taskStatus == 'DONE'" class="bi bi-check-circle-fill mx-1"></i>
+            <div class="oval-label mx-1 good">
+              <span v-if="item.priority == 'FIRST'" class="label-text good">우선순위 1</span>
+              <span v-if="item.priority == 'SECOND'" class="label-text normal">우선순위 2</span>
+              <span v-if="item.priority == 'THIRD'" class="label-text bad">우선순위 3</span>
+            </div>
+            <div class="oval-label mx-1 bad">
+              <span v-if="item.difficulty == 'HARD'" class="label-text good">난이도 상</span>
+              <span v-if="item.difficulty == 'NORMAL'" class="label-text normal">난이도 중</span>
+              <span v-if="item.difficulty == 'EASY'" class="label-text bad">난이도 하</span>
+            </div>
+            <div class="oval-label mx-1">
+              <span v-if="item.importance == 'FIRST'" class="label-text good">중요도 상</span>
+              <span v-if="item.importance == 'SECOND'" class="label-text normal">중요도 중</span>
+              <span v-if="item.importance == 'THIRD'" class="label-text bad">중요도 하</span>
             </div>
           </div>
-          <ul v-if="item.subTaskQueryResponses" class="list-group mt-2 list-group-flush">
-            <li v-for="(subitem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
-              <span>{{ subitem.name }}</span>
-              <i v-if="subitem.subTaskStatus == 'TODO'" class="bi bi-circle mx-1"></i>
-              <i v-if="subitem.subTaskStatus == 'PROGRESS'" class="bi bi-dash-circle mx-1"></i>
-              <i v-if="subitem.subTaskStatus == 'DONE'" class="bi bi-check-circle mx-1"></i>
-            </li>
-          </ul>
-        </li>
-      </ul>
+        </div>
+        <ul v-if="item.subTaskQueryResponses" class="list-group mt-2 list-group-flush">
+          <li v-for="(subitem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
+            <span>{{ subitem.name }}</span>
+            <i v-if="subitem.subTaskStatus == 'TODO'" class="bi bi-circle mx-1"></i>
+            <i v-if="subitem.subTaskStatus == 'PROGRESS'" class="bi bi-dash-circle mx-1"></i>
+            <i v-if="subitem.subTaskStatus == 'DONE'" class="bi bi-check-circle mx-1"></i>
+          </li>
+        </ul>
+      </li>
+    </ul>
   </div>
 </template>
 
 <script>
+import AlertWarning from "@/components/basic/AlertWarning.vue";
+import AlertServerError from "@/components/basic/AlertServerError.vue";
+import { saveTaskApi } from '@/api/tasks.js';
+
 export default {
   name: 'Tasks',
+  components: {
+    AlertWarning: AlertWarning,
+    AlertServerError: AlertServerError,
+  },
   props: {
+    dailyScheduleId: Number,
     items: Array,
   },
   data() {
     return {
+      isShowTaskForm: false,
+
+      newTaskName: '',
+      selectedTaskDifficulty: null,
+      selectedTaskPriority: null,
+      selectedTaskImportance: null,
       
+      isTaskDuplicatedAlert: false,
+      isServerErrorAlert: false,
     };
   },
   methods: {
+    showTaskForm() {
+      this.newTaskName = '';
+      this.isShowTaskForm = !this.isShowTaskForm;
+    },
+
+    async addTask() {
+      const data = await this.createTask();
+      if (data == undefined) return;
+
+      const newTask = {
+        id: data.taskId,
+        name: this.newTaskName,
+        priority: this.selectedTaskPriority,
+        importance: this.selectedTaskImportance,
+        difficulty: this.selectedTaskDifficulty,
+        taskStatus: 'TODO'
+      };
+      this.$emit('addTask', newTask);
+      this.isShowTaskForm = false;
+    },
+
+    async createTask() {
+      try {
+        const response = await saveTaskApi( 
+          {
+            dailyToDoListId: this.dailyScheduleId,
+            taskName: this.newTaskName,
+            difficulty: this.selectedTaskDifficulty,
+            priority: this.selectedTaskPriority,
+            importance: this.selectedTaskImportance
+          } 
+        );
+        return response.data;
+      } catch (error) {
+        this.handleTaskDuplicatedError(error);
+        return;
+      }
+    },
+
+    handleTaskDuplicatedError(error) {
+      if (error.response && error.response.data.message === '과제 체커의 이름이 중복되었습니다.') {
+          this.isTaskDuplicatedAlert = true;
+          return;
+      }
+      this.handleServerError();
+    },
+
+    handleServerError(error) {
+      this.isServerErrorAlert = true;
+      console.log(`오류가 발생했습니다: ${error}`);
+    },
+
   },
 };
 </script>
 
 <style scoped>
-@media screen and (max-width: 700px) {
+
+ @media screen and (max-width: 700px) { 
+
+  .form-label {
+    font-size: 1.25vw;
+  }
+
+  .form-control {
+    font-size: 2.0vw;
+  }
+
+  .form-btn {
+    font-size: 1.25vw;
+    padding: 2px 4px;
+  }
+
+  .label-text {
+    font-size: 1.0vw;
+  }
+
   span {
     font-size: 2.2vw;
   }
 
-  .label-text {
-    font-size: 1.5vw;
+  .form-check {
+    font-size: 2.0vw;
+    min-height: 0;
   }
+
 }
 
 .good {

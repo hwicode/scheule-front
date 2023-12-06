@@ -34,7 +34,7 @@
   <div class="container">
     <div class="row">
       <div class="col-md-6 my-3">
-        <Tasks :items="items"/>
+        <Tasks @addTask="addTask" :dailyScheduleId="id" :items="items"/>
       </div>
       <div class="col-md-6 my-3">
         <TimeTable :date="getFormattedDate()" :tasks="tasks" :subTasks="subTasks"/>
@@ -132,6 +132,10 @@ export default {
       return true;
     },
 
+    addTask(task) {
+      this.items.push(task);
+    },
+    
     async fetchSchedule() {
       const date = this.getFormattedDate();
       try {
