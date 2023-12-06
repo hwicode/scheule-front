@@ -174,7 +174,7 @@
                     <ul class="dropdown-menu">
                       <li @click="showSubGoalChangeNameForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 이름 변경</li>
                       <li @click="showSubGoalChangeStatusForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 상태 변경</li>
-                      <li @click="console.log(3)" class="dropdown-item" style="cursor: pointer;">서브 목표 삭제</li>
+                      <li @click="showSubGoalDeleteForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 삭제</li>
                     </ul>
                     <div v-if="subGoal.subGoalStatus" class="oval-label mx-1">
                       <span class="label-text">{{ subGoal.subGoalStatus }}</span>
@@ -223,6 +223,19 @@
                     <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
                   </div>
 
+                  <div v-if="subGoal.showSubGoalDeleteForm" class="border px-1 py-1" style="width: 80%;">
+                    <form @submit.prevent="deleteSubGoal(goal, subGoal, index)">
+                      <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="form-label">서브 목표 삭제</label>
+                        <button @click="subGoal.showSubGoalDeleteForm = !subGoal.showSubGoalDeleteForm;" type="button" class="btn-close"></button>
+                      </div>
+                      <div class="text-center">
+                        <button type="submit" class="btn btn-secondary form-btn">삭제</button>
+                      </div>
+                    </form>
+                    <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -238,7 +251,7 @@
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 
-import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi, changeSubGoalStatusApi } from '@/api/goals.js';
+import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi, changeSubGoalStatusApi, deleteSubGoalApi } from '@/api/goals.js';
 
 export default {
   name: 'Goals',
@@ -348,6 +361,15 @@ export default {
     },
 
     closeAllSubGoalStatusForm(subGoals) {
+      subGoals.forEach(subGoal => subGoal.showSubGoalStatusForm = false);
+    },
+
+    showSubGoalDeleteForm(goal, subGoal) {
+      this.closeAllSubGoalDeleteForm(goal.subGoalResponses);
+      subGoal.showSubGoalDeleteForm = !subGoal.showSubGoalDeleteForm;
+    },
+
+    closeAllSubGoalDeleteForm(subGoals) {
       subGoals.forEach(subGoal => subGoal.showSubGoalStatusForm = false);
     },
     
@@ -529,6 +551,17 @@ export default {
         subGoal.subGoalStatus = response.data.modifiedSubGoalStatus;
       } catch (error) {
         this.handleGoalStatusError(error);
+        return;
+      }
+    },
+
+    async deleteSubGoal(goal, subGoal, index) {
+      try {
+        await deleteSubGoalApi(goal.id, subGoal.name);
+        subGoal.showSubGoalDeleteForm = false;
+        goal.subGoalResponses.splice(index, 1);
+      } catch (error) {
+        this.handleServerError(error);
         return;
       }
     },

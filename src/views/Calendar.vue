@@ -100,6 +100,7 @@ export default {
           ...subGoal,
           showSubGoalChangeForm: false,
           showSubGoalStatusForm: false,
+          showSubGoalDeleteForm: false,
         }));
         
         return item;

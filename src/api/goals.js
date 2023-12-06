@@ -46,4 +46,8 @@ function changeSubGoalStatusApi(dto) {
     });
 }
 
-export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi, changeSubGoalStatusApi };
+function deleteSubGoalApi(goalId, subGoalName) {
+    return api.delete(`/goals/${goalId}/sub-goals`, {params: { subGoalName: subGoalName }});
+}
+
+export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi, changeSubGoalStatusApi, deleteSubGoalApi };
