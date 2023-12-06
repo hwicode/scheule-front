@@ -380,11 +380,11 @@ export default {
 
     handleGoalStatusError(error) {
       if (error.response && error.response.data.message === '서브 목표가 전부 TODO 상태가 아닙니다.') {
-          this.isGoalDuplicatedAlert = true;
+          this.isNotAllToDoSubGoalAlert = true;
           return;
       }
       if (error.response && error.response.data.message === '서브 목표가 전부 DONE 상태가 아닙니다.') {
-          this.isGoalDuplicatedAlert = true;
+          this.isNotAllDoneSubGoalAlert = true;
           return;
       }
       this.handleServerError();
