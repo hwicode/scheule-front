@@ -86,15 +86,22 @@ export default {
     },
 
     initializeGoals(goalResponses) {
-      this.goals = goalResponses.map(item => {
-        return {
-          ...item,
+      this.goals = goalResponses.map(goal => {
+        const item = {
+          ...goal,
           showGoalChangeForm: false,
           showGoalPeriodForm: false,
           showGoalStatusForm: false,
           showGoalDeleteForm: false,
           showSubGoalCreateForm: false,
         };
+
+        item.subGoalResponses = goal.subGoalResponses.map(subGoal => ({
+          ...subGoal,
+          showSubGoalChangeForm: false,
+        }));
+        
+        return item;
       });
     },
 

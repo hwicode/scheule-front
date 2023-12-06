@@ -39,7 +39,7 @@
           <div class="accordion-item">
             <div class="accordion-header d-flex justify-content-between align-items-center">
               <div class="accordion-name text-break px-1" data-bs-toggle="dropdown" style="cursor: pointer;">
-                {{ goal.name }}1
+                {{ goal.name }}
               </div>
               <ul class="dropdown-menu">
                 <li @click="showGoalChangeForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 이름 변경</li>
@@ -167,13 +167,34 @@
               <div class="accordion-body">
                 <div v-for="(subGoal, index) in goal.subGoalResponses" :key="index">
                   <div class="d-flex align-items-center">
-                    <div class="accordion-name">
+                    <div class="accordion-name text-break px-1" data-bs-toggle="dropdown" style="cursor: pointer;">
                       {{ subGoal.name }}
                     </div>
+                    <ul class="dropdown-menu">
+                      <li @click="showSubGoalChangeNameForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 이름 변경</li>
+                      <li @click="console.log(2)" class="dropdown-item" style="cursor: pointer;">서브 목표 상태 변경</li>
+                      <li @click="console.log(3)" class="dropdown-item" style="cursor: pointer;">서브 목표 삭제</li>
+                    </ul>
                     <div v-if="subGoal.subGoalStatus" class="oval-label mx-1">
                       <span class="label-text">{{ subGoal.subGoalStatus }}</span>
                     </div>
                   </div>
+
+                  <div v-if="subGoal.showSubGoalChangeForm" class="border px-1 py-1" style="width: 80%;">
+                    <form @submit.prevent="changeSubGoalName(goal, subGoal)">
+                      <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="form-label">서브 목표 이름 변경</label>
+                        <button @click="subGoal.showSubGoalChangeForm = !subGoal.showSubGoalChangeForm;" type="button" class="btn-close"></button>
+                      </div>
+                      <div class="input-group">
+                        <input v-model="newSubGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
+                        <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                      </div>
+                    </form>
+                    <AlertWarning @turnOff="isSubGoalDuplicatedAlert = $event" message="캘린더에 같은 이름의 서브 목표가 이미 있습니다." :isVisible="isSubGoalDuplicatedAlert"/>
+                    <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -189,7 +210,7 @@
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 
-import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi } from '@/api/goals.js';
+import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi } from '@/api/goals.js';
 
 export default {
   name: 'Goals',
@@ -274,11 +295,22 @@ export default {
 
     showSubGoalCreateForm(goal) {
       this.closeAllSubGoalCreateForm();
+      this.newSubGoalName = '';
       goal.showSubGoalCreateForm = !goal.showSubGoalCreateForm;
     },
 
     closeAllSubGoalCreateForm() {
       this.goals.forEach(goal => goal.showSubGoalCreateForm = false);
+    },
+
+    showSubGoalChangeNameForm(goal, subGoal) {
+      this.closeAllSubGoalCreateForm(goal.subGoalResponses);
+      this.newSubGoalName = '';
+      subGoal.showSubGoalChangeForm = !goal.showSubGoalChangeForm;
+    },
+
+    closeAllSubGoalChangeNameForm(subGoals) {
+      subGoals.forEach(subGoal => subGoal.showSubGoalChangeForm = false);
     },
     
     async addGoal() {
@@ -402,7 +434,7 @@ export default {
 
     handleServerError(error) {
       this.isServerErrorAlert = true;
-      console.log(`오류가 발생했습니다: ${error.message}`);
+      console.log(`오류가 발생했습니다: ${error}`);
     },
 
     async createSubGoal(goal) {
@@ -417,17 +449,33 @@ export default {
         goal.subGoalResponses.push(newSubGoal);
         goal.showSubGoalCreateForm = false;
       } catch (error) {
-        this.handleCreateSubGoalError(error);
+        this.handleSubGoalDuplicatedError(error);
         return;
       }
     },
 
-    handleCreateSubGoalError(error) {
+    handleSubGoalDuplicatedError(error) {
       if (error.response && error.response.data.message === '서브 목표가 중복되었습니다.') {
           this.isSubGoalDuplicatedAlert = true;
           return;
       }
       this.handleServerError();
+    },
+
+    async changeSubGoalName(goal, subGoal) {
+      try {
+        const response = await changeSubGoalNameApi( {
+          goalId: goal.id,
+          subGoalId: subGoal.id,
+          subGoalName: subGoal.name,
+          newSubGoalName: this.newSubGoalName
+        });
+        subGoal.name = response.data.newSubGoalName;
+        subGoal.showSubGoalChangeForm = false;
+      } catch (error) {
+        this.handleSubGoalDuplicatedError(error);
+        return;
+      }
     },
   },
 

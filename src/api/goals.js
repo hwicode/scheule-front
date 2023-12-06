@@ -30,4 +30,12 @@ function saveSubGoalApi(goalId, subGoalName) {
     return api.post(`/goals/${goalId}/sub-goals`, { subGoalName: subGoalName });
 }
 
-export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi };
+function changeSubGoalNameApi(dto) {
+    return api.patch(`/goals/${dto.goalId}/sub-goals/${dto.subGoalId}/name`,
+     { 
+        subGoalName: dto.subGoalName,
+        newSubGoalName: dto.newSubGoalName
+    });
+}
+
+export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi };
