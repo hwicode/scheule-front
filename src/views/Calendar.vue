@@ -87,6 +87,7 @@ export default {
           ...item,
           showGoalChangeForm: false,
           showGoalPeriodForm: false,
+          showGoalStatusForm: false,
         };
       });
     },

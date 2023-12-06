@@ -24,8 +24,8 @@
         </div>
 
         <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="목표 기간은 1~24까지의 수만 가능합니다." :isVisible="isGoalCreateWarningAlert"/>
-        <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
-        <AlertServerError @turnOff="isServerError = $event" :isVisible="isServerError"/>
+        <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 같은 이름의 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
+        <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
 
         <div class="text-center">
           <button type="submit" class="btn btn-primary form-btn">추가</button>
@@ -44,7 +44,7 @@
               <ul class="dropdown-menu">
                 <li @click="showGoalChangeForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 이름 변경</li>
                 <li @click="showGoalPeriodForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 기간 추가</li>
-                <li class="dropdown-item" style="cursor: pointer;">목표 상태 변경</li>
+                <li @click="showGoalStatusForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 상태 변경</li>
                 <li class="dropdown-item" style="cursor: pointer;">목표 삭제</li>
                 <li class="dropdown-item" style="cursor: pointer;">서브 목표 생성</li>
               </ul>
@@ -77,10 +77,8 @@
                   <button type="submit" class="btn btn-secondary form-btn">변경</button>
                 </div>
               </form>
-
-              <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 중복되었습니다." :isVisible="isGoalDuplicatedAlert"/>
-              <AlertServerError @turnOff="isServerError = $event" :isVisible="isServerError"/>
-
+              <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 같은 이름의 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
             <div v-if="goal.showGoalPeriodForm" class="border px-1 py-1" style="width: 80%;">
@@ -93,12 +91,44 @@
                   <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요" required>
                   <button type="submit" class="btn btn-secondary form-btn">변경</button>
                 </div>
-
-                <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="목표 기간은 1~24까지의 수만 가능합니다." :isVisible="isGoalCreateWarningAlert"/>
-                <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
-                <AlertServerError @turnOff="isServerError = $event" :isVisible="isServerError"/>
-
               </form>
+              <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="목표 기간은 1~24까지의 수만 가능합니다." :isVisible="isGoalCreateWarningAlert"/>
+              <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
+            <div v-if="goal.showGoalStatusForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="changeGoalStatus(goal)">
+                <div class="d-flex justify-content-between mb-2">
+                  <label class="form-label">목표 상태 변경</label>
+                  <button @click="goal.showGoalStatusForm = !goal.showGoalStatusForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <div class="form-check form-check-inline mx-1">
+                      <input v-model="selectedStatus" value="TODO" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                      <label class="form-check-label" for="flexRadioDefault1">
+                        To Do
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline mx-1">
+                      <input v-model="selectedStatus" value="PROGRESS" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+                      <label class="form-check-label" for="flexRadioDefault2">
+                        Progress
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline mx-1">
+                      <input v-model="selectedStatus" value="DONE" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
+                      <label class="form-check-label" for="flexRadioDefault3">
+                        Done
+                      </label>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                </div>
+              </form>
+              <AlertWarning @turnOff="isNotAllToDoSubGoalAlert = $event" message="서브 목표가 전부 TODO 상태가 아닙니다." :isVisible="isNotAllToDoSubGoalAlert"/>
+              <AlertWarning @turnOff="isNotAllDoneSubGoalAlert = $event" message="서브 목표가 전부 DONE 상태가 아닙니다." :isVisible="isNotAllDoneSubGoalAlert"/>
             </div>
 
             <div
@@ -131,7 +161,7 @@
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 
-import { saveGoal, changeGoalName, addGoalToCalendars } from '@/api/goals.js';
+import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi } from '@/api/goals.js';
 
 export default {
   name: 'Goals',
@@ -148,10 +178,14 @@ export default {
     return {
       showAll: false,
       isShowGoalForm: false,
+
       newGoalName: '',
       newGoalPeriod: null,
+      selectedStatus: null,
+
+      isServerErrorAlert: false,
       isGoalCreateWarningAlert: false, isGoalDuplicatedAlert: false,
-      isServerError: false,
+      isNotAllToDoSubGoalAlert: false, isNotAllDoneSubGoalAlert: false,
     };
   },
   computed: {
@@ -188,6 +222,15 @@ export default {
 
     closeAllGoalPeriodForm() {
       this.goals.forEach(goal => goal.showGoalPeriodForm = false);
+    },
+
+    showGoalStatusForm(goal) {
+      this.closeAllGoalStatusForm();
+      goal.showGoalStatusForm = !goal.showGoalStatusForm;
+    },
+
+    closeAllGoalStatusForm() {
+      this.goals.forEach(goal => goal.showGoalStatusForm = false);
     },
     
     async addGoal() {
@@ -238,9 +281,9 @@ export default {
       if (error.response && error.response.data.message === '캘린더에 목표가 중복되었습니다.') {
           this.isGoalDuplicatedAlert = true;
           return;
-        }
-        this.isServerError = true;
-        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+      this.isServerErrorAlert = true;
+      console.log(`오류가 발생했습니다: ${error.message}`);
     },
 
     async changeName(goal) {
@@ -275,6 +318,30 @@ export default {
         this.handleGoalDuplicatedError(error);
         return;
       }
+    },
+
+    async changeGoalStatus(goal) {
+      try {
+        const response = await changeGoalStatusApi(goal.id, this.selectedStatus);
+        goal.showGoalStatusForm = false;
+        goal.goalStatus = response.data.goalStatus;
+      } catch (error) {
+        this.handleGoalStatusError(error);
+        return;
+      }
+    },
+
+    handleGoalStatusError(error) {
+      if (error.response && error.response.data.message === '서브 목표가 전부 TODO 상태가 아닙니다.') {
+          this.isGoalDuplicatedAlert = true;
+          return;
+      }
+      if (error.response && error.response.data.message === '서브 목표가 전부 DONE 상태가 아닙니다.') {
+          this.isGoalDuplicatedAlert = true;
+          return;
+      }
+      this.isServerErrorAlert = true;
+      console.log(`오류가 발생했습니다: ${error.message}`);
     },
   },
 
@@ -345,6 +412,10 @@ export default {
 
   .dropdown-item {
     padding: 4px 8px;
+  }
+
+  .form-check {
+    font-size: 1.2vw;
   }
 
 }
