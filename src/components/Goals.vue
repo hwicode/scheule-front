@@ -106,19 +106,19 @@
                 <div class="d-flex justify-content-between">
                   <div>
                     <div class="form-check form-check-inline mx-1">
-                      <input v-model="selectedStatus" value="TODO" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                      <input v-model="selectedGoalStatus" value="TODO" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
                       <label class="form-check-label" for="flexRadioDefault1">
                         To Do
                       </label>
                     </div>
                     <div class="form-check form-check-inline mx-1">
-                      <input v-model="selectedStatus" value="PROGRESS" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+                      <input v-model="selectedGoalStatus" value="PROGRESS" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
                       <label class="form-check-label" for="flexRadioDefault2">
                         Progress
                       </label>
                     </div>
                     <div class="form-check form-check-inline mx-1">
-                      <input v-model="selectedStatus" value="DONE" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
+                      <input v-model="selectedGoalStatus" value="DONE" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
                       <label class="form-check-label" for="flexRadioDefault3">
                         Done
                       </label>
@@ -129,6 +129,7 @@
               </form>
               <AlertWarning @turnOff="isNotAllToDoSubGoalAlert = $event" message="서브 목표가 전부 TODO 상태가 아닙니다." :isVisible="isNotAllToDoSubGoalAlert"/>
               <AlertWarning @turnOff="isNotAllDoneSubGoalAlert = $event" message="서브 목표가 전부 DONE 상태가 아닙니다." :isVisible="isNotAllDoneSubGoalAlert"/>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
             <div v-if="goal.showGoalDeleteForm" class="border px-1 py-1" style="width: 80%;">
@@ -172,7 +173,7 @@
                     </div>
                     <ul class="dropdown-menu">
                       <li @click="showSubGoalChangeNameForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 이름 변경</li>
-                      <li @click="console.log(2)" class="dropdown-item" style="cursor: pointer;">서브 목표 상태 변경</li>
+                      <li @click="showSubGoalChangeStatusForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 상태 변경</li>
                       <li @click="console.log(3)" class="dropdown-item" style="cursor: pointer;">서브 목표 삭제</li>
                     </ul>
                     <div v-if="subGoal.subGoalStatus" class="oval-label mx-1">
@@ -195,6 +196,33 @@
                     <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
                   </div>
 
+                  <div v-if="subGoal.showSubGoalStatusForm" class="border px-1 py-1" style="width: 80%;">
+                    <form @submit.prevent="changeSubGoalStatus(goal, subGoal)">
+                      <div class="d-flex justify-content-between mb-2">
+                        <label class="form-label">서브 목표 상태 변경</label>
+                        <button @click="subGoal.showSubGoalStatusForm = !subGoal.showSubGoalStatusForm;" type="button" class="btn-close"></button>
+                      </div>
+                      <div class="d-flex justify-content-between">
+                        <div>
+                          <div class="form-check form-check-inline mx-1">
+                            <input v-model="selectedSubGoalStatus" value="TODO" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                            <label class="form-check-label" for="flexRadioDefault1">
+                              To Do
+                            </label>
+                          </div>
+                          <div class="form-check form-check-inline mx-1">
+                            <input v-model="selectedSubGoalStatus" value="DONE" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
+                            <label class="form-check-label" for="flexRadioDefault3">
+                              Done
+                            </label>
+                          </div>
+                        </div>
+                        <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                      </div>
+                    </form>
+                    <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -210,7 +238,7 @@
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 
-import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi } from '@/api/goals.js';
+import { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi, changeSubGoalStatusApi } from '@/api/goals.js';
 
 export default {
   name: 'Goals',
@@ -230,8 +258,9 @@ export default {
 
       newGoalName: '',
       newGoalPeriod: null,
-      selectedStatus: null,
+      selectedGoalStatus: null,
       newSubGoalName: '',
+      selectedSubGoalStatus: null,
 
       isServerErrorAlert: false,
       isGoalCreateWarningAlert: false, isGoalDuplicatedAlert: false,
@@ -306,11 +335,20 @@ export default {
     showSubGoalChangeNameForm(goal, subGoal) {
       this.closeAllSubGoalCreateForm(goal.subGoalResponses);
       this.newSubGoalName = '';
-      subGoal.showSubGoalChangeForm = !goal.showSubGoalChangeForm;
+      subGoal.showSubGoalChangeForm = !subGoal.showSubGoalChangeForm;
     },
 
     closeAllSubGoalChangeNameForm(subGoals) {
       subGoals.forEach(subGoal => subGoal.showSubGoalChangeForm = false);
+    },
+
+    showSubGoalChangeStatusForm(goal, subGoal) {
+      this.closeAllSubGoalStatusForm(goal.subGoalResponses);
+      subGoal.showSubGoalStatusForm = !subGoal.showSubGoalStatusForm;
+    },
+
+    closeAllSubGoalStatusForm(subGoals) {
+      subGoals.forEach(subGoal => subGoal.showSubGoalStatusForm = false);
     },
     
     async addGoal() {
@@ -401,7 +439,7 @@ export default {
 
     async changeGoalStatus(goal) {
       try {
-        const response = await changeGoalStatusApi(goal.id, this.selectedStatus);
+        const response = await changeGoalStatusApi(goal.id, this.selectedGoalStatus);
         goal.showGoalStatusForm = false;
         goal.goalStatus = response.data.goalStatus;
       } catch (error) {
@@ -474,6 +512,23 @@ export default {
         subGoal.showSubGoalChangeForm = false;
       } catch (error) {
         this.handleSubGoalDuplicatedError(error);
+        return;
+      }
+    },
+
+    async changeSubGoalStatus(goal, subGoal) {
+      try {
+        const response = await changeSubGoalStatusApi( {
+          goalId: goal.id,
+          subGoalId: subGoal.id,
+          subGoalName: subGoal.name,
+          subGoalStatus: this.selectedSubGoalStatus
+        });
+        subGoal.showSubGoalStatusForm = false;
+        goal.goalStatus = response.data.modifiedGoalStatus;
+        subGoal.subGoalStatus = response.data.modifiedSubGoalStatus;
+      } catch (error) {
+        this.handleGoalStatusError(error);
         return;
       }
     },

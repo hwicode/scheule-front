@@ -38,4 +38,12 @@ function changeSubGoalNameApi(dto) {
     });
 }
 
-export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi };
+function changeSubGoalStatusApi(dto) {
+    return api.patch(`/goals/${dto.goalId}/sub-goals/${dto.subGoalId}/status`, 
+     { 
+        subGoalName: dto.subGoalName,
+        subGoalStatus: dto.subGoalStatus   
+    });
+}
+
+export { saveGoal, changeGoalName, addGoalToCalendars, changeGoalStatusApi, deleteGoalApi, saveSubGoalApi, changeSubGoalNameApi, changeSubGoalStatusApi };

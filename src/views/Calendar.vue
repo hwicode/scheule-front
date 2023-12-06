@@ -99,6 +99,7 @@ export default {
         item.subGoalResponses = goal.subGoalResponses.map(subGoal => ({
           ...subGoal,
           showSubGoalChangeForm: false,
+          showSubGoalStatusForm: false,
         }));
         
         return item;
