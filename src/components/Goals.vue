@@ -44,13 +44,12 @@
               <ul class="dropdown-menu">
                 <li @click="showGoalChangeForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 이름 변경</li>
                 <li @click="showGoalPeriodForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 기간 추가</li>
-                <li @click="showGoalStatusForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 상태 변경</li>
                 <li @click="showGoalDeleteForm(goal)" class="dropdown-item" style="cursor: pointer;">목표 삭제</li>
                 <li @click="showSubGoalCreateForm(goal)" class="dropdown-item" style="cursor: pointer;">서브 목표 생성</li>
               </ul>
 
               <div  class="d-flex align-items-center" >
-                <div v-if="goal.goalStatus" class="oval-label px-1">
+                <div @click="showGoalStatusForm(goal)" v-if="goal.goalStatus" class="oval-label px-1" style="cursor: pointer;">
                   <span class="label-text">{{ goal.goalStatus }}</span>
                 </div>
                 <button
@@ -64,37 +63,6 @@
                   <i class="bi bi-chevron-down"></i>
                 </button>
               </div>
-            </div>
-
-            <div v-if="goal.showGoalChangeForm" class="border px-1 py-1" style="width: 80%;">
-              <form @submit.prevent="changeName(goal)">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <label class="form-label">목표 이름 변경</label>
-                  <button @click="goal.showGoalChangeForm = !goal.showGoalChangeForm;" type="button" class="btn-close"></button>
-                </div>
-                <div class="input-group">
-                  <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
-                  <button type="submit" class="btn btn-secondary form-btn">변경</button>
-                </div>
-              </form>
-              <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 같은 이름의 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
-              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
-            </div>
-
-            <div v-if="goal.showGoalPeriodForm" class="border px-1 py-1" style="width: 80%;">
-              <form @submit.prevent="addGoalPeriod(goal)">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <label class="form-label">목표 기간 추가</label>
-                  <button @click="goal.showGoalPeriodForm = !goal.showGoalPeriodForm;" type="button" class="btn-close"></button>
-                </div>
-                <div class="input-group">
-                  <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요" required>
-                  <button type="submit" class="btn btn-secondary form-btn">변경</button>
-                </div>
-              </form>
-              <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="목표 기간은 1~24까지의 수만 가능합니다." :isVisible="isGoalCreateWarningAlert"/>
-              <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
-              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
             <div v-if="goal.showGoalStatusForm" class="border px-1 py-1" style="width: 80%;">
@@ -129,6 +97,37 @@
               </form>
               <AlertWarning @turnOff="isNotAllToDoSubGoalAlert = $event" message="서브 목표가 전부 TODO 상태가 아닙니다." :isVisible="isNotAllToDoSubGoalAlert"/>
               <AlertWarning @turnOff="isNotAllDoneSubGoalAlert = $event" message="서브 목표가 전부 DONE 상태가 아닙니다." :isVisible="isNotAllDoneSubGoalAlert"/>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
+            <div v-if="goal.showGoalChangeForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="changeName(goal)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">목표 이름 변경</label>
+                  <button @click="goal.showGoalChangeForm = !goal.showGoalChangeForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="input-group">
+                  <input v-model="newGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
+                  <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                </div>
+              </form>
+              <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 같은 이름의 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
+            <div v-if="goal.showGoalPeriodForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="addGoalPeriod(goal)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">목표 기간 추가</label>
+                  <button @click="goal.showGoalPeriodForm = !goal.showGoalPeriodForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="input-group">
+                  <input v-model.number="newGoalPeriod" type="number" class="form-control" placeholder="목표의 기간(month)을 입력하세요" required>
+                  <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                </div>
+              </form>
+              <AlertWarning @turnOff="isGoalCreateWarningAlert = $event" message="목표 기간은 1~24까지의 수만 가능합니다." :isVisible="isGoalCreateWarningAlert"/>
+              <AlertWarning @turnOff="isGoalDuplicatedAlert = $event" message="캘린더에 목표가 이미 있습니다." :isVisible="isGoalDuplicatedAlert"/>
               <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
@@ -173,27 +172,11 @@
                     </div>
                     <ul class="dropdown-menu">
                       <li @click="showSubGoalChangeNameForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 이름 변경</li>
-                      <li @click="showSubGoalChangeStatusForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 상태 변경</li>
                       <li @click="showSubGoalDeleteForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 삭제</li>
                     </ul>
-                    <div v-if="subGoal.subGoalStatus" class="oval-label mx-1">
+                    <div @click="showSubGoalChangeStatusForm(goal, subGoal)" v-if="subGoal.subGoalStatus" class="oval-label mx-1" style="cursor: pointer;">
                       <span class="label-text">{{ subGoal.subGoalStatus }}</span>
                     </div>
-                  </div>
-
-                  <div v-if="subGoal.showSubGoalChangeForm" class="border px-1 py-1" style="width: 80%;">
-                    <form @submit.prevent="changeSubGoalName(goal, subGoal)">
-                      <div class="d-flex align-items-center justify-content-between mb-2">
-                        <label class="form-label">서브 목표 이름 변경</label>
-                        <button @click="subGoal.showSubGoalChangeForm = !subGoal.showSubGoalChangeForm;" type="button" class="btn-close"></button>
-                      </div>
-                      <div class="input-group">
-                        <input v-model="newSubGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
-                        <button type="submit" class="btn btn-secondary form-btn">변경</button>
-                      </div>
-                    </form>
-                    <AlertWarning @turnOff="isSubGoalDuplicatedAlert = $event" message="캘린더에 같은 이름의 서브 목표가 이미 있습니다." :isVisible="isSubGoalDuplicatedAlert"/>
-                    <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
                   </div>
 
                   <div v-if="subGoal.showSubGoalStatusForm" class="border px-1 py-1" style="width: 80%;">
@@ -220,6 +203,21 @@
                         <button type="submit" class="btn btn-secondary form-btn">변경</button>
                       </div>
                     </form>
+                    <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+                  </div>
+
+                  <div v-if="subGoal.showSubGoalChangeForm" class="border px-1 py-1" style="width: 80%;">
+                    <form @submit.prevent="changeSubGoalName(goal, subGoal)">
+                      <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="form-label">서브 목표 이름 변경</label>
+                        <button @click="subGoal.showSubGoalChangeForm = !subGoal.showSubGoalChangeForm;" type="button" class="btn-close"></button>
+                      </div>
+                      <div class="input-group">
+                        <input v-model="newSubGoalName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
+                        <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                      </div>
+                    </form>
+                    <AlertWarning @turnOff="isSubGoalDuplicatedAlert = $event" message="캘린더에 같은 이름의 서브 목표가 이미 있습니다." :isVisible="isSubGoalDuplicatedAlert"/>
                     <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
                   </div>
 
@@ -318,12 +316,7 @@ export default {
     },
 
     showGoalStatusForm(goal) {
-      this.closeAllGoalStatusForm();
       goal.showGoalStatusForm = !goal.showGoalStatusForm;
-    },
-
-    closeAllGoalStatusForm() {
-      this.goals.forEach(goal => goal.showGoalStatusForm = false);
     },
 
     showGoalDeleteForm(goal) {
@@ -356,12 +349,7 @@ export default {
     },
 
     showSubGoalChangeStatusForm(goal, subGoal) {
-      this.closeAllSubGoalStatusForm(goal.subGoalResponses);
       subGoal.showSubGoalStatusForm = !subGoal.showSubGoalStatusForm;
-    },
-
-    closeAllSubGoalStatusForm(subGoals) {
-      subGoals.forEach(subGoal => subGoal.showSubGoalStatusForm = false);
     },
 
     showSubGoalDeleteForm(goal, subGoal) {
@@ -586,7 +574,7 @@ export default {
  .accordion-name:hover {
     color: #aeac8d; 
     transition: background-color 0.3s; 
-  }
+}
 
  @media screen and (max-width: 700px) { 
   .container {
