@@ -35,7 +35,6 @@
             </label>
           </div>
         </div>
-
         <label class="form-label fw-bold">긴급도</label>
         <div class="d-flex align-items-center justify-content-between">
           <div class="form-check form-check-inline mx-4">
@@ -57,7 +56,6 @@
             </label>
           </div>
         </div>
-
         <label class="form-label fw-bold">중요도</label>
         <div class="d-flex align-items-center justify-content-between">
           <div class="form-check form-check-inline mx-4">
@@ -91,7 +89,13 @@
     <ul class="list-group">
       <li v-for="(item, index) in items" :key="index" class="list-group-item">
         <div class="d-flex justify-content-between align-items-center">
-          <span class="fw-bold">{{ item.name }}</span>
+          <span class="fw-bold name-hover"  data-bs-toggle="dropdown" style="cursor: pointer;">{{ item.name }}</span>
+          <ul class="dropdown-menu">
+            <li @click="showTaskChangeForm(item)" class="dropdown-item" style="cursor: pointer;">과제 이름 변경</li>
+            <li @click="showTaskDeleteForm(item)" class="dropdown-item" style="cursor: pointer;">과제 삭제</li>
+            <li @click="showSubTaskCreateForm(item)" class="dropdown-item" style="cursor: pointer;">서브 과제 생성</li>
+          </ul>
+
           <div>
             <i v-if="item.taskStatus == 'TODO'" class="bi bi-circle mx-1"></i>
             <i v-if="item.taskStatus == 'PROGRESS'" class="bi bi-dash-circle mx-1"></i>
@@ -113,6 +117,22 @@
             </div>
           </div>
         </div>
+
+        <div v-if="item.showTaskChangeForm" class="border px-1 py-1" style="width: 80%;">
+          <form @submit.prevent="changeName(item)">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label">과제 이름 변경</label>
+              <button @click="item.showTaskChangeForm = !item.showTaskChangeForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="input-group">
+              <input v-model="newTaskName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
+              <button type="submit" class="btn btn-secondary form-btn">변경</button>
+            </div>
+          </form>
+          <AlertWarning @turnOff="isTaskDuplicatedAlert = $event" message="계획표에 같은 이름의 과제가 이미 있습니다." :isVisible="isTaskDuplicatedAlert"/>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
         <ul v-if="item.subTaskQueryResponses" class="list-group mt-2 list-group-flush">
           <li v-for="(subitem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
             <span>{{ subitem.name }}</span>
@@ -129,7 +149,7 @@
 <script>
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
-import { saveTaskApi } from '@/api/tasks.js';
+import { saveTaskApi, changeTaskNameApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -158,6 +178,16 @@ export default {
     showTaskForm() {
       this.newTaskName = '';
       this.isShowTaskForm = !this.isShowTaskForm;
+    },
+
+    showTaskChangeForm(task) {
+      this.closeAllTaskChangeForm();
+      this.newTaskName = '';
+      task.showTaskChangeForm = !task.showTaskChangeForm;
+    },
+
+    closeAllTaskChangeForm() {
+      this.items.forEach(task => task.showTaskChangeForm = false);
     },
 
     async addTask() {
@@ -207,11 +237,32 @@ export default {
       console.log(`오류가 발생했습니다: ${error}`);
     },
 
+    async changeName(task) {
+      try {
+        const response = await changeTaskNameApi( {
+          dailyToDoListId: this.dailyScheduleId,
+          taskId: task.id,
+          taskName: task.name,
+          newTaskName: this.newTaskName
+        });
+        task.name = response.data.newTaskCheckerName;
+        task.showTaskChangeForm = false;
+      } catch (error) {
+        this.handleTaskDuplicatedError(error);
+        return;
+      }
+    },
+
   },
 };
 </script>
 
 <style scoped>
+
+.name-hover:hover {
+    color: #aeac8d; 
+    transition: background-color 0.3s; 
+}
 
  @media screen and (max-width: 700px) { 
 

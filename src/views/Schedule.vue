@@ -154,8 +154,17 @@ export default {
       this.emoji = data.emoji,
       this.mainTag = data.mainTagName;
       this.review = data.review;
-      this.items = data.taskQueryResponses;
+      this.initializeItems(data.taskQueryResponses);
       this.initializeTasksAndSubTasks();
+    },
+
+    initializeItems(taskResponses) {
+      this.items = taskResponses.map(goal => {
+        return {
+          ...goal,
+          showTaskChangeForm: false,
+        };
+      });
     },
 
     initializeTasksAndSubTasks() {

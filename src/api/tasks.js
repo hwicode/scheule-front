@@ -12,4 +12,13 @@ function saveTaskApi(dto) {
     });
 }
 
-export { saveTaskApi };
+function changeTaskNameApi(dto) {
+    return api.patch(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/name`,
+     { 
+        dailyChecklistId: dto.dailyToDoListId,
+        taskCheckerName: dto.taskName,
+        newTaskCheckerName: dto.newTaskName
+    });
+}
+
+export { saveTaskApi, changeTaskNameApi };
