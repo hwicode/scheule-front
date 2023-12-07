@@ -77,6 +77,8 @@ export default {
         const goalResponses = response.data.goalResponses;
         this.initializeGoals(goalResponses);
       } catch (error) {
+        this.calendarId = 0;
+        this.goals = [];
         this.handleFetchError(error, yearMonth);
       }
     },
