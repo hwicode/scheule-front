@@ -270,17 +270,33 @@
         </div>
 
         <div v-if="item.showTaskDeleteForm" class="border px-1 py-1" style="width: 80%;">
-              <form @submit.prevent="deleteTask(item)">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <label class="form-label">과제 삭제</label>
-                  <button @click="item.showTaskDeleteForm = !item.showTaskDeleteForm;" type="button" class="btn-close"></button>
-                </div>
-                <div class="text-center">
-                  <button type="submit" class="btn btn-secondary form-btn">삭제</button>
-                </div>
-              </form>
-              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+          <form @submit.prevent="deleteTask(item)">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label">과제 삭제</label>
+              <button @click="item.showTaskDeleteForm = !item.showTaskDeleteForm;" type="button" class="btn-close"></button>
             </div>
+            <div class="text-center">
+              <button type="submit" class="btn btn-secondary form-btn">삭제</button>
+            </div>
+          </form>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
+        
+        <div v-if="item.showSubTaskCreateForm" class="border px-1 py-1" style="width: 80%;">
+          <form @submit.prevent="createSubTask(item)">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label">서브 과제 생성</label>
+              <button @click="item.showSubTaskCreateForm = !item.showSubTaskCreateForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="input-group">
+              <input v-model="newSubTaskName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
+              <button type="submit" class="btn btn-secondary form-btn">추가</button>
+            </div>
+          </form>
+          <AlertWarning @turnOff="isSubTaskDuplicatedAlert = $event" message="과제에 같은 이름의 서브 과제가 이미 있습니다." :isVisible="isSubTaskDuplicatedAlert"/>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
 
         <ul v-if="item.subTaskQueryResponses" class="list-group mt-2 list-group-flush">
           <li v-for="(subitem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
@@ -298,7 +314,7 @@
 <script>
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
-import { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi } from '@/api/tasks.js';
+import { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -315,6 +331,7 @@ export default {
       isShowTaskForm: false,
 
       newTaskName: '',
+      newSubTaskName: '',
       selectedTaskStatus: null,
       selectedTaskDifficulty: null,
       selectedTaskPriority: null,
@@ -322,6 +339,7 @@ export default {
       
       isServerErrorAlert: false,
       isTaskDuplicatedAlert: false,
+      isSubTaskDuplicatedAlert: false,
       isNotAllToDoSubTaskAlert: false,
       isNotAllDoneSubTaskAlert: false,
     };
@@ -365,6 +383,16 @@ export default {
 
     showTaskDifficultyForm(task) {
       task.showTaskDifficultyForm = !task.showTaskDifficultyForm;
+    },
+
+    showSubTaskCreateForm(task) {
+      this.closeAllSubTaskCreateForm();
+      this.newSubTaskName = '';
+      task.showSubTaskCreateForm = !task.showSubTaskCreateForm;
+    },
+
+    closeAllSubTaskCreateForm() {
+      this.items.forEach(task => task.showSubGoalCreateForm = false);
     },
 
     async addTask() {
@@ -512,6 +540,36 @@ export default {
         this.handleServerError(error);
         return;
       }
+    },
+
+    async createSubTask(task) {
+      try {
+        const response = await saveSubTaskApi( {
+          dailyToDoListId: this.dailyScheduleId, 
+          taskId: task.id,
+          taskName: task.name,
+          subTaskName: this.newSubTaskName
+        });
+        const newSubTask = {
+          id: response.data.subTaskId,
+          name: response.data.subTaskName,
+          subTaskStatus: 'TODO',
+          taskId: task.id
+        };
+        task.subTaskQueryResponses.push(newSubTask);
+        task.showSubTaskCreateForm = false;
+      } catch (error) {
+        this.handleSubTaskDuplicatedError(error);
+        return;
+      }
+    },
+
+    handleSubTaskDuplicatedError(error) {
+      if (error.response && error.response.data.message === '서브 과제 체커의 이름이 중복되었습니다.') {
+          this.isSubTaskDuplicatedAlert = true;
+          return;
+      }
+      this.handleServerError();
     },
 
   },

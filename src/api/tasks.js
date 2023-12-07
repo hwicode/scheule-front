@@ -51,4 +51,13 @@ function changeTaskDifficultyApi(dto) {
     });
 }
 
-export { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi };
+function saveSubTaskApi(dto) {
+    return api.post(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/subtasks`,
+     {
+        dailyToDoListId: dto.dailyToDoListId,
+        taskName: dto.taskName,
+        subTaskName: dto.subTaskName
+    });
+}
+
+export { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi };

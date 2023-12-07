@@ -172,6 +172,7 @@ export default {
           showTaskImportanceForm: false,
           showTaskPriorityForm: false,
           showTaskDifficultyForm: false,
+          showSubTaskCreateForm: false,
         };
       });
     },
