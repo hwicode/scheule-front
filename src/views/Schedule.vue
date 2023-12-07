@@ -169,6 +169,9 @@ export default {
           showTaskChangeForm: false,
           showTaskDeleteForm: false,
           showTaskStatusForm: false,
+          showTaskImportanceForm: false,
+          showTaskPriorityForm: false,
+          showTaskDifficultyForm: false,
         };
       });
     },

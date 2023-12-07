@@ -34,4 +34,21 @@ function changeTaskStatusApi(dto) {
     });
 }
 
-export { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi };
+function changeTaskPriorityOrImportanceApi(dto) {
+    return api.patch(`/dailyschedule/tasks/${dto.taskId}/information`,
+     {
+        priority: dto.priority,
+        importance: dto.importance,
+    });
+}
+
+function changeTaskDifficultyApi(dto) {
+    return api.patch(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/difficulty`,
+     {
+        dailyChecklistId: dto.dailyToDoListId,
+        taskCheckerName: dto.taskName,
+        difficulty: dto.difficulty 
+    });
+}
+
+export { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi };

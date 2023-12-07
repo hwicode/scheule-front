@@ -14,7 +14,7 @@
           <input v-model="newTaskName" type="text" class="form-control" placeholder="새로운 과제를 입력하세요" required>
         </div>
 
-        <label class="form-label fw-bold">어려움 점수</label>
+        <label class="form-label fw-bold">난이도</label>
         <div class="d-flex align-items-center justify-content-between">
           <div class="form-check form-check-inline mx-4">
             <input v-model="selectedTaskDifficulty" value="HARD" class="form-check-input" type="radio" name="flexRadioDefault1" id="flexRadioDefault3">
@@ -102,17 +102,17 @@
               <i v-if="item.taskStatus == 'PROGRESS'" class="bi bi-dash-circle"></i>
               <i v-if="item.taskStatus == 'DONE'" class="bi bi-check-circle-fill"></i>
             </div>
-            <div class="oval-label mx-1">
-              <span v-if="item.priority == 'FIRST'" class="label-text good">우선순위 1</span>
-              <span v-if="item.priority == 'SECOND'" class="label-text normal">우선순위 2</span>
-              <span v-if="item.priority == 'THIRD'" class="label-text bad">우선순위 3</span>
+            <div @click="showTaskPriorityForm(item)" class="oval-label mx-1" style="cursor: pointer;">
+              <span v-if="item.priority == 'FIRST'" class="label-text good">긴급도 1</span>
+              <span v-if="item.priority == 'SECOND'" class="label-text normal">긴급도 2</span>
+              <span v-if="item.priority == 'THIRD'" class="label-text bad">긴급도 3</span>
             </div>
-            <div class="oval-label mx-1">
+            <div @click="showTaskDifficultyForm(item)" class="oval-label mx-1" style="cursor: pointer;">
               <span v-if="item.difficulty == 'HARD'" class="label-text good">난이도 상</span>
               <span v-if="item.difficulty == 'NORMAL'" class="label-text normal">난이도 중</span>
               <span v-if="item.difficulty == 'EASY'" class="label-text bad">난이도 하</span>
             </div>
-            <div class="oval-label mx-1">
+            <div @click="showTaskImportanceForm(item)" class="oval-label mx-1" style="cursor: pointer;">
               <span v-if="item.importance == 'FIRST'" class="label-text good">중요도 상</span>
               <span v-if="item.importance == 'SECOND'" class="label-text normal">중요도 중</span>
               <span v-if="item.importance == 'THIRD'" class="label-text bad">중요도 하</span>
@@ -152,6 +152,105 @@
           </form>
           <AlertWarning @turnOff="isNotAllToDoSubTaskAlert = $event" message="서브 과제가 전부 TODO 상태가 아닙니다." :isVisible="isNotAllToDoSubTaskAlert"/>
           <AlertWarning @turnOff="isNotAllDoneSubTaskAlert = $event" message="서브 과제가 전부 DONE 상태가 아닙니다." :isVisible="isNotAllDoneSubTaskAlert"/>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
+        <div v-if="item.showTaskPriorityForm" class="border px-1 py-1" style="width: 80%;">
+          <form @submit.prevent="changeTaskPriority(item)">
+            <div class="d-flex justify-content-between mb-2">
+              <label class="form-label">과제 긴급도 변경</label>
+              <button @click="item.showTaskPriorityForm = !item.showTaskPriorityForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskPriority" value="FIRST" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                  <label class="form-check-label" for="flexRadioDefault1">
+                    First
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskPriority" value="SECOND" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+                  <label class="form-check-label" for="flexRadioDefault2">
+                    Second
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskPriority" value="THIRD" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
+                  <label class="form-check-label" for="flexRadioDefault3">
+                    Third
+                  </label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-secondary form-btn">변경</button>
+            </div>
+          </form>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
+        <div v-if="item.showTaskDifficultyForm" class="border px-1 py-1" style="width: 80%;">
+          <form @submit.prevent="changeTaskDifficulty(item)">
+            <div class="d-flex justify-content-between mb-2">
+              <label class="form-label">과제 난이도 변경</label>
+              <button @click="item.showTaskDifficultyForm = !item.showTaskDifficultyForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskDifficulty" value="HARD" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                  <label class="form-check-label" for="flexRadioDefault1">
+                    Hard
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskDifficulty" value="NORMAL" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+                  <label class="form-check-label" for="flexRadioDefault2">
+                    Normal
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskDifficulty" value="EASY" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
+                  <label class="form-check-label" for="flexRadioDefault3">
+                    Easy
+                  </label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-secondary form-btn">변경</button>
+            </div>
+          </form>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
+        <div v-if="item.showTaskImportanceForm" class="border px-1 py-1" style="width: 80%;">
+          <form @submit.prevent="changeTaskImportance(item)">
+            <div class="d-flex justify-content-between mb-2">
+              <label class="form-label">과제 중요도 변경</label>
+              <button @click="item.showTaskImportanceForm = !item.showTaskImportanceForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskImportance" value="FIRST" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                  <label class="form-check-label" for="flexRadioDefault1">
+                    First
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskImportance" value="SECOND" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+                  <label class="form-check-label" for="flexRadioDefault2">
+                    Second
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskImportance" value="THIRD" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
+                  <label class="form-check-label" for="flexRadioDefault3">
+                    Third
+                  </label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-secondary form-btn">변경</button>
+            </div>
+          </form>
           <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
         </div>
 
@@ -199,7 +298,7 @@
 <script>
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
-import { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi } from '@/api/tasks.js';
+import { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -254,6 +353,18 @@ export default {
 
     showTaskStatusForm(task) {
       task.showTaskStatusForm = !task.showTaskStatusForm;
+    },
+
+    showTaskImportanceForm(task) {
+      task.showTaskImportanceForm = !task.showTaskImportanceForm;
+    },
+
+    showTaskPriorityForm(task) {
+      task.showTaskPriorityForm = !task.showTaskPriorityForm;
+    },
+
+    showTaskDifficultyForm(task) {
+      task.showTaskDifficultyForm = !task.showTaskDifficultyForm;
     },
 
     async addTask() {
@@ -355,6 +466,52 @@ export default {
           return;
       }
       this.handleServerError();
+    },
+
+    async changeTaskPriority(task) {
+      try {
+        const response = await changeTaskPriorityOrImportanceApi( {
+          taskId: task.id,
+          priority: this.selectedTaskPriority,
+          importance: task.importance
+        });
+        task.showTaskPriorityForm = false;
+        task.priority = response.data.modifiedPriority;
+      } catch (error) {
+        this.handleServerError(error);
+        return;
+      }
+    },
+
+    async changeTaskDifficulty(task) {
+      try {
+        const response = await changeTaskDifficultyApi( {
+          dailyToDoListId: this.dailyScheduleId, 
+          taskId: task.id,
+          taskName: task.name,
+          difficulty: this.selectedTaskDifficulty
+        });
+        task.showTaskDifficultyForm = false;
+        task.difficulty = response.data.modifiedDifficulty;
+      } catch (error) {
+        this.handleServerError(error);
+        return;
+      }
+    },
+
+    async changeTaskImportance(task) {
+      try {
+        const response = await changeTaskPriorityOrImportanceApi( {
+          taskId: task.id,
+          priority: task.priority,
+          importance: this.selectedTaskImportance
+        });
+        task.showTaskImportanceForm = false;
+        task.importance = response.data.modifiedImportance;
+      } catch (error) {
+        this.handleServerError(error);
+        return;
+      }
     },
 
   },
