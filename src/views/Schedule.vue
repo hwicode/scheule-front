@@ -168,6 +168,7 @@ export default {
           ...goal,
           showTaskChangeForm: false,
           showTaskDeleteForm: false,
+          showTaskStatusForm: false,
         };
       });
     },

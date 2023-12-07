@@ -96,16 +96,18 @@
             <li @click="showSubTaskCreateForm(item)" class="dropdown-item" style="cursor: pointer;">서브 과제 생성</li>
           </ul>
 
-          <div>
-            <i v-if="item.taskStatus == 'TODO'" class="bi bi-circle mx-1"></i>
-            <i v-if="item.taskStatus == 'PROGRESS'" class="bi bi-dash-circle mx-1"></i>
-            <i v-if="item.taskStatus == 'DONE'" class="bi bi-check-circle-fill mx-1"></i>
-            <div class="oval-label mx-1 good">
+          <div class="d-flex align-items-center">
+            <div @click="showTaskStatusForm(item)" class="mx-1" style="cursor: pointer;">
+              <i v-if="item.taskStatus == 'TODO'" class="bi bi-circle"></i>
+              <i v-if="item.taskStatus == 'PROGRESS'" class="bi bi-dash-circle"></i>
+              <i v-if="item.taskStatus == 'DONE'" class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="oval-label mx-1">
               <span v-if="item.priority == 'FIRST'" class="label-text good">우선순위 1</span>
               <span v-if="item.priority == 'SECOND'" class="label-text normal">우선순위 2</span>
               <span v-if="item.priority == 'THIRD'" class="label-text bad">우선순위 3</span>
             </div>
-            <div class="oval-label mx-1 bad">
+            <div class="oval-label mx-1">
               <span v-if="item.difficulty == 'HARD'" class="label-text good">난이도 상</span>
               <span v-if="item.difficulty == 'NORMAL'" class="label-text normal">난이도 중</span>
               <span v-if="item.difficulty == 'EASY'" class="label-text bad">난이도 하</span>
@@ -116,6 +118,41 @@
               <span v-if="item.importance == 'THIRD'" class="label-text bad">중요도 하</span>
             </div>
           </div>
+        </div>
+
+        <div v-if="item.showTaskStatusForm" class="border px-1 py-1" style="width: 80%;">
+          <form @submit.prevent="changeTaskStatus(item)">
+            <div class="d-flex justify-content-between mb-2">
+              <label class="form-label">과제 상태 변경</label>
+              <button @click="item.showTaskStatusForm = !item.showTaskStatusForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskStatus" value="TODO" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                  <label class="form-check-label" for="flexRadioDefault1">
+                    To Do
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskStatus" value="PROGRESS" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+                  <label class="form-check-label" for="flexRadioDefault2">
+                    Progress
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-1">
+                  <input v-model="selectedTaskStatus" value="DONE" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
+                  <label class="form-check-label" for="flexRadioDefault3">
+                    Done
+                  </label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-secondary form-btn">변경</button>
+            </div>
+          </form>
+          <AlertWarning @turnOff="isNotAllToDoSubTaskAlert = $event" message="서브 과제가 전부 TODO 상태가 아닙니다." :isVisible="isNotAllToDoSubTaskAlert"/>
+          <AlertWarning @turnOff="isNotAllDoneSubTaskAlert = $event" message="서브 과제가 전부 DONE 상태가 아닙니다." :isVisible="isNotAllDoneSubTaskAlert"/>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
         </div>
 
         <div v-if="item.showTaskChangeForm" class="border px-1 py-1" style="width: 80%;">
@@ -162,7 +199,7 @@
 <script>
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
-import { saveTaskApi, changeTaskNameApi, deleteTaskApi } from '@/api/tasks.js';
+import { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -179,12 +216,15 @@ export default {
       isShowTaskForm: false,
 
       newTaskName: '',
+      selectedTaskStatus: null,
       selectedTaskDifficulty: null,
       selectedTaskPriority: null,
       selectedTaskImportance: null,
       
-      isTaskDuplicatedAlert: false,
       isServerErrorAlert: false,
+      isTaskDuplicatedAlert: false,
+      isNotAllToDoSubTaskAlert: false,
+      isNotAllDoneSubTaskAlert: false,
     };
   },
   methods: {
@@ -210,6 +250,10 @@ export default {
 
     closeAllTaskDeleteForm() {
       this.items.forEach(task => task.showTaskDeleteForm = false);
+    },
+
+    showTaskStatusForm(task) {
+      task.showTaskStatusForm = !task.showTaskStatusForm;
     },
 
     async addTask() {
@@ -283,6 +327,34 @@ export default {
         this.handleServerError(error);
         return;
       }
+    },
+
+    async changeTaskStatus(task) {
+      try {
+        const response = await changeTaskStatusApi( {
+          dailyToDoListId: this.dailyScheduleId, 
+          taskId: task.id,
+          taskName: task.name,
+          taskStatus: this.selectedTaskStatus
+        });
+        task.showTaskStatusForm = false;
+        task.taskStatus = response.data.modifiedTaskStatus;
+      } catch (error) {
+        this.handleTaskStatusError(error);
+        return;
+      }
+    },
+
+    handleTaskStatusError(error) {
+      if (error.response && error.response.data.message === '서브 과제 체커가 전부 TODO 상태가 아닙니다.') {
+          this.isNotAllToDoSubTaskAlert = true;
+          return;
+      }
+      if (error.response && error.response.data.message === '서브 과제 체커가 전부 DONE 상태가 아닙니다.') {
+          this.isNotAllDoneSubTaskAlert = true;
+          return;
+      }
+      this.handleServerError();
     },
 
   },
