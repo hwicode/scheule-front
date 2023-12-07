@@ -34,7 +34,7 @@
   <div class="container">
     <div class="row">
       <div class="col-md-6 my-3">
-        <Tasks @addTask="addTask" :dailyScheduleId="id" :items="items"/>
+        <Tasks @addTask="addTask" @deleteTask="deleteTask" :dailyScheduleId="id" :items="items"/>
       </div>
       <div class="col-md-6 my-3">
         <TimeTable :date="getFormattedDate()" :tasks="tasks" :subTasks="subTasks"/>
@@ -135,6 +135,10 @@ export default {
     addTask(task) {
       this.items.push(task);
     },
+
+    deleteTask(task) {
+      this.items = this.items.filter(item => item.id !== task.id);
+    },
     
     async fetchSchedule() {
       const date = this.getFormattedDate();
@@ -163,6 +167,7 @@ export default {
         return {
           ...goal,
           showTaskChangeForm: false,
+          showTaskDeleteForm: false,
         };
       });
     },

@@ -133,6 +133,19 @@
           <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
         </div>
 
+        <div v-if="item.showTaskDeleteForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="deleteTask(item)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">과제 삭제</label>
+                  <button @click="item.showTaskDeleteForm = !item.showTaskDeleteForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="text-center">
+                  <button type="submit" class="btn btn-secondary form-btn">삭제</button>
+                </div>
+              </form>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
         <ul v-if="item.subTaskQueryResponses" class="list-group mt-2 list-group-flush">
           <li v-for="(subitem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
             <span>{{ subitem.name }}</span>
@@ -149,7 +162,7 @@
 <script>
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
-import { saveTaskApi, changeTaskNameApi } from '@/api/tasks.js';
+import { saveTaskApi, changeTaskNameApi, deleteTaskApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -188,6 +201,15 @@ export default {
 
     closeAllTaskChangeForm() {
       this.items.forEach(task => task.showTaskChangeForm = false);
+    },
+
+    showTaskDeleteForm(task) {
+      this.closeAllTaskChangeForm();
+      task.showTaskDeleteForm = !task.showTaskDeleteForm;
+    },
+
+    closeAllTaskDeleteForm() {
+      this.items.forEach(task => task.showTaskDeleteForm = false);
     },
 
     async addTask() {
@@ -249,6 +271,16 @@ export default {
         task.showTaskChangeForm = false;
       } catch (error) {
         this.handleTaskDuplicatedError(error);
+        return;
+      }
+    },
+
+    async deleteTask(task) {
+      try {
+        await deleteTaskApi(this.dailyScheduleId, task.id, task.name);
+        this.$emit('deleteTask', task);
+      } catch (error) {
+        this.handleServerError(error);
         return;
       }
     },

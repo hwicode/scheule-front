@@ -21,4 +21,8 @@ function changeTaskNameApi(dto) {
     });
 }
 
-export { saveTaskApi, changeTaskNameApi };
+function deleteTaskApi(dailyToDoListId, taskId, taskName) {
+    return api.delete(`/dailyschedule/daily-todo-lists/${dailyToDoListId}/tasks/${taskId}`, {params: { taskName: taskName }});
+}
+
+export { saveTaskApi, changeTaskNameApi, deleteTaskApi };
