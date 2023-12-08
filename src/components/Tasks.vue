@@ -300,15 +300,17 @@
 
         <ul v-if="item.subTaskQueryResponses" class="list-group mt-2 list-group-flush">
           <li v-for="(subItem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
-            <div>
+            <div class="d-flex align-items-center">
               <span class="name-hover" data-bs-toggle="dropdown" style="cursor: pointer;">{{ subItem.name }}</span>
               <ul class="dropdown-menu">
                 <li @click="showSubTaskChangeForm(item, subItem)" class="dropdown-item" style="cursor: pointer;">서브 과제 이름 변경</li>
                 <li @click="showSubTaskDeleteForm(item, subItem)" class="dropdown-item" style="cursor: pointer;">서브 과제 삭제</li>
               </ul>
-              <i v-if="subItem.subTaskStatus == 'TODO'" class="bi bi-circle mx-1"></i>
-              <i v-if="subItem.subTaskStatus == 'PROGRESS'" class="bi bi-dash-circle mx-1"></i>
-              <i v-if="subItem.subTaskStatus == 'DONE'" class="bi bi-check-circle mx-1"></i>
+              <div @click="showSubTaskStatusForm(subItem)" class="mx-2" style="cursor: pointer;">
+                <i v-if="subItem.subTaskStatus == 'TODO'" class="bi bi-circle"></i>
+                <i v-if="subItem.subTaskStatus == 'PROGRESS'" class="bi bi-dash-circle"></i>
+                <i v-if="subItem.subTaskStatus == 'DONE'" class="bi bi-check-circle"></i>
+              </div>
             </div>
 
             <div v-if="subItem.showSubTaskChangeForm" class="border px-1 py-1" style="width: 80%;">
@@ -339,6 +341,39 @@
               <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
+            <div v-if="subItem.showSubTaskStatusForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="changeSubTaskStatus(item, subItem)">
+                <div class="d-flex justify-content-between mb-2">
+                  <label class="form-label">서브 과제 상태 변경</label>
+                  <button @click="subItem.showSubTaskStatusForm = !subItem.showSubTaskStatusForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <div class="form-check form-check-inline mx-1">
+                      <input v-model="selectedSubTaskStatus" value="TODO" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                      <label class="form-check-label" for="flexRadioDefault1">
+                        To Do
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline mx-1">
+                      <input v-model="selectedSubTaskStatus" value="PROGRESS" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+                      <label class="form-check-label" for="flexRadioDefault2">
+                        Progress
+                      </label>
+                    </div>
+                    <div class="form-check form-check-inline mx-1">
+                      <input v-model="selectedSubTaskStatus" value="DONE" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
+                      <label class="form-check-label" for="flexRadioDefault3">
+                        Done
+                      </label>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                </div>
+              </form>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
           </li>
         </ul>
       </li>
@@ -352,7 +387,7 @@ import AlertServerError from "@/components/basic/AlertServerError.vue";
 import { 
   saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, 
   changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi, 
-  changeSubTaskNameApi, deleteSubTaskApi } from '@/api/tasks.js';
+  changeSubTaskNameApi, deleteSubTaskApi, changeSubTaskStatusApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -374,6 +409,7 @@ export default {
       selectedTaskDifficulty: null,
       selectedTaskPriority: null,
       selectedTaskImportance: null,
+      selectedSubTaskStatus: null,
       
       isServerErrorAlert: false,
       isTaskDuplicatedAlert: false,
@@ -450,6 +486,10 @@ export default {
 
     closeAllSubTaskDeleteForm(subTasks) {
       subTasks.forEach(subTask => subTask.showSubTaskDeleteForm = false);
+    },
+
+    showSubTaskStatusForm(subTask) {
+      subTask.showSubTaskStatusForm = !subTask.showSubTaskStatusForm;
     },
 
     async addTask() {
@@ -656,6 +696,25 @@ export default {
         });
         subTask.showSubTaskDeleteForm = false;
         task.subTaskQueryResponses.splice(index, 1);
+      } catch (error) {
+        this.handleServerError(error);
+        return;
+      }
+    },
+
+    async changeSubTaskStatus(task, subTask) {
+      try {
+        const response = await changeSubTaskStatusApi( {
+          dailyToDoListId: this.dailyScheduleId,
+          taskId: task.id,
+          subTaskId: subTask.id,
+          taskName: task.name,
+          subTaskName: subTask.name,
+          subTaskStatus: this.selectedSubTaskStatus
+        });
+        subTask.showSubTaskStatusForm = false;
+        task.taskStatus = response.data.modifiedTaskStatus;
+        subTask.subTaskStatus = response.data.modifiedSubTaskStatus;
       } catch (error) {
         this.handleServerError(error);
         return;

@@ -537,7 +537,7 @@ export default {
         goal.goalStatus = response.data.modifiedGoalStatus;
         subGoal.subGoalStatus = response.data.modifiedSubGoalStatus;
       } catch (error) {
-        this.handleGoalStatusError(error);
+        this.handleServerError(error);
         return;
       }
     },

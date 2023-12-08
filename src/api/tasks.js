@@ -78,8 +78,18 @@ function deleteSubTaskApi(dto) {
     });
 }
 
+function changeSubTaskStatusApi(dto) {
+    return api.patch(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/subtasks/${dto.subTaskId}/status`,
+     {
+        dailyChecklistId: dto.dailyToDoListId,
+        taskCheckerName: dto.taskName,
+        subTaskCheckerName: dto.subTaskName,
+        subTaskStatus: dto.subTaskStatus
+    });
+}
+
 export { 
     saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi,
     changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi, 
-    changeSubTaskNameApi, deleteSubTaskApi
+    changeSubTaskNameApi, deleteSubTaskApi, changeSubTaskStatusApi
 };
