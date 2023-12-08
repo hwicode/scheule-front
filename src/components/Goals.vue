@@ -145,7 +145,7 @@
             </div>
 
             <div v-if="goal.showSubGoalCreateForm" class="border px-1 py-1" style="width: 80%;">
-              <form @submit.prevent="createSubGoal(goal)">
+              <form @submit.prevent="addSubGoal(goal)">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <label class="form-label">서브 목표 생성</label>
                   <button @click="goal.showSubGoalCreateForm = !goal.showSubGoalCreateForm;" type="button" class="btn-close"></button>
@@ -484,7 +484,7 @@ export default {
       console.log(`오류가 발생했습니다: ${error}`);
     },
 
-    async createSubGoal(goal) {
+    async addSubGoal(goal) {
       try {
         const response = await saveSubGoalApi(goal.id, this.newSubGoalName);
         const newSubGoal = {
@@ -493,8 +493,8 @@ export default {
           subGoalStatus: 'TODO',
           goalId: goal.id
         };
-        goal.subGoalResponses.push(newSubGoal);
         goal.showSubGoalCreateForm = false;
+        this.$emit('addSubGoal', goal, newSubGoal);
       } catch (error) {
         this.handleSubGoalDuplicatedError(error);
         return;

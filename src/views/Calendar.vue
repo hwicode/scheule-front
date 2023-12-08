@@ -10,7 +10,7 @@
         </button>
     </div>
     
-    <Goals @addGoal="addGoal" @deleteGoal="deleteGoal" :calendarId="calendarId" :yearMonth="getFormattedYearMonth()" :goals="goals"/>
+    <Goals @addGoal="addGoal" @deleteGoal="deleteGoal" @addSubGoal="addSubGoal" :calendarId="calendarId" :yearMonth="getFormattedYearMonth()" :goals="goals"/>
     <CalendarSchedule :year="year" :month="month" />
   </div>
 </template>
@@ -61,11 +61,17 @@ export default {
     },
 
     addGoal(goal) {
+      goal = this.initializeGoal(goal);
       this.goals.push(goal);
     },
     
     deleteGoal(goal) {
       this.goals = this.goals.filter(item => item.id !== goal.id);
+    },
+
+    addSubGoal(goal, subGoal) {
+      subGoal = this.initializeSubGoal(subGoal);
+      goal.subGoalResponses.push(subGoal);
     },
     
     async fetchCalendarAndGoals() {
@@ -89,7 +95,12 @@ export default {
 
     initializeGoals(goalResponses) {
       this.goals = goalResponses.map(goal => {
-        const item = {
+        return this.initializeGoal(goal);
+      });
+    },
+
+    initializeGoal(goal) {
+      const item = {
           ...goal,
           showGoalChangeForm: false,
           showGoalPeriodForm: false,
@@ -98,15 +109,21 @@ export default {
           showSubGoalCreateForm: false,
         };
 
-        item.subGoalResponses = goal.subGoalResponses.map(subGoal => ({
-          ...subGoal,
+      if (goal.subGoalResponses) {
+        item.subGoalResponses = goal.subGoalResponses.map(subGoal => this.initializeSubGoal(subGoal))
+      } else {
+        item.subGoalResponses = [];
+      }
+      return item;
+    },
+
+    initializeSubGoal(subGoal) {
+      return {
+        ...subGoal,
           showSubGoalChangeForm: false,
           showSubGoalStatusForm: false,
           showSubGoalDeleteForm: false,
-        }));
-        
-        return item;
-      });
+      }
     },
 
     handleFetchError(error, yearMonth) {
