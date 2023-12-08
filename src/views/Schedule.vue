@@ -186,6 +186,7 @@ export default {
         showTaskPriorityForm: false,
         showTaskDifficultyForm: false,
         showTaskReviewForm: false,
+        showTaskReviewCancelForm: false,
         showSubTaskCreateForm: false,
       };
 

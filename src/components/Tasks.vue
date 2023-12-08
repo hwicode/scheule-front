@@ -95,6 +95,7 @@
             <li @click="showTaskChangeForm(item)" class="dropdown-item" style="cursor: pointer;">과제 이름 변경</li>
             <li @click="showTaskDeleteForm(item)" class="dropdown-item" style="cursor: pointer;">과제 삭제</li>
             <li @click="showTaskReviewForm(item)" class="dropdown-item" style="cursor: pointer;">과제 복습</li>
+            <li @click="showTaskReviewCancelForm(item)" class="dropdown-item" style="cursor: pointer;">과제 복습 취소</li>
             <li @click="showSubTaskCreateForm(item)" class="dropdown-item" style="cursor: pointer;">서브 과제 생성</li>
           </ul>
 
@@ -301,6 +302,19 @@
           <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
         </div>
 
+        <div v-if="item.showTaskReviewCancelForm" class="border px-1 py-1" style="width: 80%;">
+          <form @submit.prevent="cancelReviewdTaskApi(item)">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label">과제 복습 취소</label>
+              <button @click="item.showTaskReviewCancelForm = !item.showTaskReviewCancelForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="text-center">
+              <button type="submit" class="btn btn-secondary form-btn">확인</button>
+            </div>
+          </form>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
         <div v-if="item.showSubTaskCreateForm" class="border px-1 py-1" style="width: 80%;">
           <form @submit.prevent="createSubTask(item)">
             <div class="d-flex align-items-center justify-content-between mb-2">
@@ -405,7 +419,8 @@ import AlertServerError from "@/components/basic/AlertServerError.vue";
 import { 
   saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, 
   changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, getReviewCyclesApi, reviewTaskApi,
-  saveSubTaskApi, changeSubTaskNameApi, deleteSubTaskApi, changeSubTaskStatusApi } from '@/api/tasks.js';
+  cancelReviewdTaskApi, saveSubTaskApi, changeSubTaskNameApi, deleteSubTaskApi,
+  changeSubTaskStatusApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -499,6 +514,15 @@ export default {
       this.items.forEach(task => task.showTaskReviewForm = false);
     },
 
+    showTaskReviewCancelForm(task) {
+      this.closeAllTaskReviewCancelForm();
+      task.showTaskReviewCancelForm = !task.showTaskReviewCancelForm;
+    },
+
+    closeAllTaskReviewCancelForm() {
+      this.items.forEach(task => task.showTaskReviewCancelForm = false);
+    },
+
     showSubTaskCreateForm(task) {
       this.closeAllSubTaskCreateForm();
       this.newSubTaskName = '';
@@ -582,19 +606,6 @@ export default {
       this.handleServerError();
     },
 
-    handleTaskDuplicatedError(error) {
-      if (error.response && error.response.data.message === '과제 체커의 이름이 중복되었습니다.') {
-          this.isTaskDuplicatedAlert = true;
-          return;
-      }
-      this.handleServerError();
-    },
-
-    handleServerError(error) {
-      this.isServerErrorAlert = true;
-      console.log(`오류가 발생했습니다: ${error}`);
-    },
-
     async changeName(task) {
       try {
         const response = await changeTaskNameApi( {
@@ -609,6 +620,14 @@ export default {
         this.handleTaskDuplicatedError(error);
         return;
       }
+    },
+
+    handleTaskDuplicatedError(error) {
+      if (error.response && error.response.data.message === '과제 체커의 이름이 중복되었습니다.') {
+          this.isTaskDuplicatedAlert = true;
+          return;
+      }
+      this.handleServerError();
     },
 
     async deleteTask(task) {
@@ -718,6 +737,15 @@ export default {
       }
     },
 
+    async cancelReviewdTaskApi(task) {
+      try {
+        await cancelReviewdTaskApi(task.id);
+        task.showTaskReviewCancelForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+      }
+    },
+
     async createSubTask(task) {
       try {
         const response = await saveSubTaskApi( {
@@ -799,6 +827,12 @@ export default {
         return;
       }
     },
+
+    handleServerError(error) {
+      this.isServerErrorAlert = true;
+      console.log(`오류가 발생했습니다: ${error}`);
+    },
+
   },
 };
 </script>
