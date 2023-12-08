@@ -34,7 +34,7 @@
   <div class="container">
     <div class="row">
       <div class="col-md-6 my-3">
-        <Tasks @addTask="addTask" @deleteTask="deleteTask" :dailyScheduleId="id" :date="getFormattedDate()" :items="items"/>
+        <Tasks @addTask="addTask" @deleteTask="deleteTask" @addSubTask="addSubTask" :dailyScheduleId="id" :date="getFormattedDate()" :items="items"/>
       </div>
       <div class="col-md-6 my-3">
         <TimeTable :date="getFormattedDate()" :tasks="tasks" :subTasks="subTasks"/>
@@ -133,11 +133,19 @@ export default {
     },
 
     addTask(task) {
+      task = this.initializeTask(task);
       this.items.push(task);
+      this.initializeTasksAndSubTasks();
     },
 
     deleteTask(task) {
       this.items = this.items.filter(item => item.id !== task.id);
+    },
+
+    addSubTask(task, subTask) {
+      subTask = this.initializeSubTask(subTask);
+      task.subTaskQueryResponses.push(subTask);
+      this.initializeTasksAndSubTasks();
     },
     
     async fetchSchedule() {
@@ -164,28 +172,38 @@ export default {
 
     initializeItems(taskResponses) {
       this.items = taskResponses.map(item => {
-        const task = {
-          ...item,
-          showTaskChangeForm: false,
-          showTaskDeleteForm: false,
-          showTaskStatusForm: false,
-          showTaskImportanceForm: false,
-          showTaskPriorityForm: false,
-          showTaskDifficultyForm: false,
-          showTaskReviewForm: false,
-          showSubTaskCreateForm: false,
-        };
-
-        if (item.subTaskQueryResponses) {
-          task.subTaskQueryResponses = item.subTaskQueryResponses.map(subTask => ({
-            ...subTask,
-            showSubTaskChangeForm: false,
-            showSubTaskStatusForm: false,
-            showSubTaskDeleteForm: false,
-          }))
-        }
-        return task;
+        return this.initializeTask(item);
       });
+    },
+
+    initializeTask(item) {
+      const task = {
+        ...item,
+        showTaskChangeForm: false,
+        showTaskDeleteForm: false,
+        showTaskStatusForm: false,
+        showTaskImportanceForm: false,
+        showTaskPriorityForm: false,
+        showTaskDifficultyForm: false,
+        showTaskReviewForm: false,
+        showSubTaskCreateForm: false,
+      };
+
+      if (item.subTaskQueryResponses) {
+        task.subTaskQueryResponses = item.subTaskQueryResponses.map(subTask => this.initializeSubTask(subTask))
+      } else {
+        task.subTaskQueryResponses = [];
+      }
+      return task;
+    },
+
+    initializeSubTask(subTask) {
+      return {
+        ...subTask,
+        showSubTaskChangeForm: false,
+        showSubTaskStatusForm: false,
+        showSubTaskDeleteForm: false,
+      }
     },
 
     initializeTasksAndSubTasks() {
@@ -193,9 +211,7 @@ export default {
 
       const subItems = [];
       this.items.forEach((item) => {
-        if (item.subTaskQueryResponses) {
-          subItems.push(...item.subTaskQueryResponses)
-        }
+        subItems.push(...item.subTaskQueryResponses)
       });
       this.subTasks = new Map(subItems.map(subTask => [subTask.id, subTask.name]));
     },

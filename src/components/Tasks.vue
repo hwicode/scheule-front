@@ -292,7 +292,7 @@
             <div class="input-group">
               <span class="name-hover form-control dropdown-toggle"  data-bs-toggle="dropdown" style="cursor: pointer;">{{ reviewMessage }}</span>
                 <ul class="dropdown-menu">
-                  <li @click="selectReviewCycle(item)" v-for="(item, index) in reviewCycles" :key="index" class="dropdown-item" style="cursor: pointer; white-space: normal;">{{ item.name }} {{ item.reviewCycleDates }}{{ item.reviewCycleDates }}{{ item.reviewCycleDates }}{{ item.reviewCycleDates }}{{ item.reviewCycleDates }}{{ item.reviewCycleDates }}</li>
+                  <li @click="selectReviewCycle(item)" v-for="(item, index) in reviewCycles" :key="index" class="dropdown-item" style="cursor: pointer; white-space: normal;">{{ item.name }} {{ item.reviewCycleDates }}</li>
                 </ul>
               <button type="submit" class="btn btn-secondary form-btn">추가</button>
             </div>
@@ -719,8 +719,8 @@ export default {
           subTaskStatus: 'TODO',
           taskId: task.id
         };
-        task.subTaskQueryResponses.push(newSubTask);
         task.showSubTaskCreateForm = false;
+        this.$emit('addSubTask', task, newSubTask);
       } catch (error) {
         this.handleSubTaskDuplicatedError(error);
         return;
