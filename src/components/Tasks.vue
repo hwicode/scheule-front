@@ -78,6 +78,7 @@
           </div>
         </div>
 
+        <AlertWarning @turnOff="isTaskCreatedAlert = $event" message="난이도, 긴급도, 중요도를 모두 체크해야 합니다." :isVisible="isTaskCreatedAlert"/>
         <AlertWarning @turnOff="isTaskDuplicatedAlert = $event" message="계획표에 같은 이름의 과제가 이미 있습니다." :isVisible="isTaskDuplicatedAlert"/>
         <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
         <div class="text-center">
@@ -434,6 +435,7 @@ export default {
       selectedReviewCycleId: null,
       
       isServerErrorAlert: false,
+      isTaskCreatedAlert: false,
       isTaskDuplicatedAlert: false,
       isSubTaskDuplicatedAlert: false,
       isNotAllToDoSubTaskAlert: false,
@@ -564,9 +566,20 @@ export default {
         );
         return response.data;
       } catch (error) {
-        this.handleTaskDuplicatedError(error);
-        return;
+        this.handleTaskCreatedError(error);
       }
+    },
+
+    handleTaskCreatedError(error) {
+      if (error.response && error.response.data.message === '유효하지 않는 파라미터가 있습니다.') {
+          this.isTaskCreatedAlert = true;
+          return;
+      }
+      if (error.response && error.response.data.message === '과제 체커의 이름이 중복되었습니다.') {
+          this.isTaskDuplicatedAlert = true;
+          return;
+      }
+      this.handleServerError();
     },
 
     handleTaskDuplicatedError(error) {
