@@ -60,4 +60,26 @@ function saveSubTaskApi(dto) {
     });
 }
 
-export { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi };
+function changeSubTaskNameApi(dto) {
+    return api.patch(`/dailyschedule/tasks/${dto.taskId}/subtasks/${dto.subTaskId}/name`,
+     {
+        taskCheckerId: dto.taskId,
+        subTaskCheckerName: dto.subTaskName,
+        newSubTaskCheckerName: dto.newSubTaskName
+    });
+}
+
+function deleteSubTaskApi(dto) {
+    return api.delete(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/subtasks/${dto.subTaskId}`, {
+        params: { 
+            taskName: dto.taskName,
+            subTaskName: dto.subTaskName
+        }
+    });
+}
+
+export { 
+    saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi,
+    changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi, 
+    changeSubTaskNameApi, deleteSubTaskApi
+};

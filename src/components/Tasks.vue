@@ -96,7 +96,7 @@
             <li @click="showSubTaskCreateForm(item)" class="dropdown-item" style="cursor: pointer;">서브 과제 생성</li>
           </ul>
 
-          <div class="d-flex align-items-center">
+          <div class="d-flex align-items-center justify-content-end flex-wrap">
             <div @click="showTaskStatusForm(item)" class="mx-1" style="cursor: pointer;">
               <i v-if="item.taskStatus == 'TODO'" class="bi bi-circle"></i>
               <i v-if="item.taskStatus == 'PROGRESS'" class="bi bi-dash-circle"></i>
@@ -299,11 +299,46 @@
         </div>
 
         <ul v-if="item.subTaskQueryResponses" class="list-group mt-2 list-group-flush">
-          <li v-for="(subitem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
-            <span>{{ subitem.name }}</span>
-            <i v-if="subitem.subTaskStatus == 'TODO'" class="bi bi-circle mx-1"></i>
-            <i v-if="subitem.subTaskStatus == 'PROGRESS'" class="bi bi-dash-circle mx-1"></i>
-            <i v-if="subitem.subTaskStatus == 'DONE'" class="bi bi-check-circle mx-1"></i>
+          <li v-for="(subItem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
+            <div>
+              <span class="name-hover" data-bs-toggle="dropdown" style="cursor: pointer;">{{ subItem.name }}</span>
+              <ul class="dropdown-menu">
+                <li @click="showSubTaskChangeForm(item, subItem)" class="dropdown-item" style="cursor: pointer;">서브 과제 이름 변경</li>
+                <li @click="showSubTaskDeleteForm(item, subItem)" class="dropdown-item" style="cursor: pointer;">서브 과제 삭제</li>
+              </ul>
+              <i v-if="subItem.subTaskStatus == 'TODO'" class="bi bi-circle mx-1"></i>
+              <i v-if="subItem.subTaskStatus == 'PROGRESS'" class="bi bi-dash-circle mx-1"></i>
+              <i v-if="subItem.subTaskStatus == 'DONE'" class="bi bi-check-circle mx-1"></i>
+            </div>
+
+            <div v-if="subItem.showSubTaskChangeForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="changeSubTaskName(item, subItem)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">서브 과제 이름 변경</label>
+                  <button @click="subItem.showSubTaskChangeForm = !subItem.showSubTaskChangeForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="input-group">
+                  <input v-model="newSubTaskName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
+                  <button type="submit" class="btn btn-secondary form-btn">변경</button>
+                </div>
+              </form>
+              <AlertWarning @turnOff="isSubTaskDuplicatedAlert = $event" message="계획표에 같은 이름의 서브 과제가 이미 있습니다." :isVisible="isSubTaskDuplicatedAlert"/>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
+            <div v-if="subItem.showSubTaskDeleteForm" class="border px-1 py-1" style="width: 80%;">
+              <form @submit.prevent="deleteSubTask(item, subItem, index)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">서브 과제 삭제</label>
+                  <button @click="subItem.showSubTaskDeleteForm = !subItem.showSubTaskDeleteForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="text-center">
+                  <button type="submit" class="btn btn-secondary form-btn">삭제</button>
+                </div>
+              </form>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
           </li>
         </ul>
       </li>
@@ -314,7 +349,10 @@
 <script>
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
-import { saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi } from '@/api/tasks.js';
+import { 
+  saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, 
+  changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi, 
+  changeSubTaskNameApi, deleteSubTaskApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -393,6 +431,25 @@ export default {
 
     closeAllSubTaskCreateForm() {
       this.items.forEach(task => task.showSubGoalCreateForm = false);
+    },
+
+    showSubTaskChangeForm(task, subTask) {
+      this.closeAllSubTaskChangeForm(task.subTaskQueryResponses);
+      this.newSubTaskName = '';
+      subTask.showSubTaskChangeForm = !subTask.showSubTaskChangeForm;
+    },
+
+    closeAllSubTaskChangeForm(subTasks) {
+      subTasks.forEach(subTask => subTask.showSubTaskChangeForm = false);
+    },
+
+    showSubTaskDeleteForm(task, subTask) {
+      this.closeAllSubTaskDeleteForm(task.subTaskQueryResponses);
+      subTask.showSubTaskDeleteForm = !subTask.showSubTaskDeleteForm;
+    },
+
+    closeAllSubTaskDeleteForm(subTasks) {
+      subTasks.forEach(subTask => subTask.showSubTaskDeleteForm = false);
     },
 
     async addTask() {
@@ -570,6 +627,39 @@ export default {
           return;
       }
       this.handleServerError();
+    },
+
+    async changeSubTaskName(task, subTask) {
+      try {
+        const response = await changeSubTaskNameApi( {
+          taskId: task.id,
+          subTaskId: subTask.id,
+          subTaskName: subTask.name,
+          newSubTaskName: this.newSubTaskName
+        });
+        subTask.name = response.data.newSubTaskCheckerName;
+        subTask.showSubTaskChangeForm = false;
+      } catch (error) {
+        this.handleSubTaskDuplicatedError(error);
+        return;
+      }
+    },
+
+    async deleteSubTask(task, subTask, index) {
+      try {
+        await deleteSubTaskApi( {
+          dailyToDoListId: this.dailyScheduleId,
+          taskId: task.id,
+          subTaskId: subTask.id,
+          taskName: task.name,
+          subTaskName: subTask.name
+        });
+        subTask.showSubTaskDeleteForm = false;
+        task.subTaskQueryResponses.splice(index, 1);
+      } catch (error) {
+        this.handleServerError(error);
+        return;
+      }
     },
 
   },

@@ -174,7 +174,7 @@
                       <li @click="showSubGoalChangeNameForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 이름 변경</li>
                       <li @click="showSubGoalDeleteForm(goal, subGoal)" class="dropdown-item" style="cursor: pointer;">서브 목표 삭제</li>
                     </ul>
-                    <div @click="showSubGoalChangeStatusForm(goal, subGoal)" v-if="subGoal.subGoalStatus" class="oval-label mx-1" style="cursor: pointer;">
+                    <div @click="showSubGoalChangeStatusForm(subGoal)" v-if="subGoal.subGoalStatus" class="oval-label mx-1" style="cursor: pointer;">
                       <span class="label-text">{{ subGoal.subGoalStatus }}</span>
                     </div>
                   </div>
@@ -347,7 +347,7 @@ export default {
       subGoals.forEach(subGoal => subGoal.showSubGoalChangeForm = false);
     },
 
-    showSubGoalChangeStatusForm(goal, subGoal) {
+    showSubGoalChangeStatusForm(subGoal) {
       subGoal.showSubGoalStatusForm = !subGoal.showSubGoalStatusForm;
     },
 

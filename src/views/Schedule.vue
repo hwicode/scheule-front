@@ -163,9 +163,9 @@ export default {
     },
 
     initializeItems(taskResponses) {
-      this.items = taskResponses.map(goal => {
-        return {
-          ...goal,
+      this.items = taskResponses.map(item => {
+        const task = {
+          ...item,
           showTaskChangeForm: false,
           showTaskDeleteForm: false,
           showTaskStatusForm: false,
@@ -174,6 +174,16 @@ export default {
           showTaskDifficultyForm: false,
           showSubTaskCreateForm: false,
         };
+
+        if (item.subTaskQueryResponses) {
+          task.subTaskQueryResponses = item.subTaskQueryResponses.map(subTask => ({
+            ...subTask,
+            showSubTaskChangeForm: false,
+            showSubTaskStatusForm: false,
+            showSubTaskDeleteForm: false,
+          }))
+        }
+        return task;
       });
     },
 
