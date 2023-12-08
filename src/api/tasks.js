@@ -51,6 +51,18 @@ function changeTaskDifficultyApi(dto) {
     });
 }
 
+function getReviewCyclesApi() {
+    return api.get(`/dailyschedule/review-cycles`);
+}
+
+function reviewTaskApi(dto) {
+    return api.post(`/dailyschedule/tasks/${dto.taskId}/review`, 
+    {
+        reviewCycleId: dto.reviewCycleId,
+        startDate: dto.startDate
+    });
+}
+
 function saveSubTaskApi(dto) {
     return api.post(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/subtasks`,
      {
@@ -90,6 +102,6 @@ function changeSubTaskStatusApi(dto) {
 
 export { 
     saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi,
-    changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi, 
-    changeSubTaskNameApi, deleteSubTaskApi, changeSubTaskStatusApi
+    changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, getReviewCyclesApi, reviewTaskApi,
+    saveSubTaskApi, changeSubTaskNameApi, deleteSubTaskApi, changeSubTaskStatusApi
 };

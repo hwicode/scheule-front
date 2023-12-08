@@ -34,7 +34,7 @@
   <div class="container">
     <div class="row">
       <div class="col-md-6 my-3">
-        <Tasks @addTask="addTask" @deleteTask="deleteTask" :dailyScheduleId="id" :items="items"/>
+        <Tasks @addTask="addTask" @deleteTask="deleteTask" :dailyScheduleId="id" :date="getFormattedDate()" :items="items"/>
       </div>
       <div class="col-md-6 my-3">
         <TimeTable :date="getFormattedDate()" :tasks="tasks" :subTasks="subTasks"/>
@@ -172,6 +172,7 @@ export default {
           showTaskImportanceForm: false,
           showTaskPriorityForm: false,
           showTaskDifficultyForm: false,
+          showTaskReviewForm: false,
           showSubTaskCreateForm: false,
         };
 

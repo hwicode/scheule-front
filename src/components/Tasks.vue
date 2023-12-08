@@ -93,6 +93,7 @@
           <ul class="dropdown-menu">
             <li @click="showTaskChangeForm(item)" class="dropdown-item" style="cursor: pointer;">과제 이름 변경</li>
             <li @click="showTaskDeleteForm(item)" class="dropdown-item" style="cursor: pointer;">과제 삭제</li>
+            <li @click="showTaskReviewForm(item)" class="dropdown-item" style="cursor: pointer;">과제 복습</li>
             <li @click="showSubTaskCreateForm(item)" class="dropdown-item" style="cursor: pointer;">서브 과제 생성</li>
           </ul>
 
@@ -282,7 +283,23 @@
           <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
         </div>
 
-        
+        <div v-if="item.showTaskReviewForm" class="border px-1 py-1" style="width: 80%;">
+          <form @submit.prevent="reviewTask(item)">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label">과제 복습</label>
+              <button @click="item.showTaskReviewForm = !item.showTaskReviewForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="input-group">
+              <span class="name-hover form-control dropdown-toggle"  data-bs-toggle="dropdown" style="cursor: pointer;">{{ reviewMessage }}</span>
+                <ul class="dropdown-menu">
+                  <li @click="selectReviewCycle(item)" v-for="(item, index) in reviewCycles" :key="index" class="dropdown-item" style="cursor: pointer; white-space: normal;">{{ item.name }} {{ item.reviewCycleDates }}{{ item.reviewCycleDates }}{{ item.reviewCycleDates }}{{ item.reviewCycleDates }}{{ item.reviewCycleDates }}{{ item.reviewCycleDates }}</li>
+                </ul>
+              <button type="submit" class="btn btn-secondary form-btn">추가</button>
+            </div>
+          </form>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
         <div v-if="item.showSubTaskCreateForm" class="border px-1 py-1" style="width: 80%;">
           <form @submit.prevent="createSubTask(item)">
             <div class="d-flex align-items-center justify-content-between mb-2">
@@ -386,8 +403,8 @@ import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 import { 
   saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, 
-  changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, saveSubTaskApi, 
-  changeSubTaskNameApi, deleteSubTaskApi, changeSubTaskStatusApi } from '@/api/tasks.js';
+  changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, getReviewCyclesApi, reviewTaskApi,
+  saveSubTaskApi, changeSubTaskNameApi, deleteSubTaskApi, changeSubTaskStatusApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -397,10 +414,14 @@ export default {
   },
   props: {
     dailyScheduleId: Number,
+    date: String,
     items: Array,
   },
   data() {
     return {
+      reviewCycles: [],
+      reviewMessage: '과제 복습 주기를 선택하세요',
+
       isShowTaskForm: false,
 
       newTaskName: '',
@@ -410,6 +431,7 @@ export default {
       selectedTaskPriority: null,
       selectedTaskImportance: null,
       selectedSubTaskStatus: null,
+      selectedReviewCycleId: null,
       
       isServerErrorAlert: false,
       isTaskDuplicatedAlert: false,
@@ -417,6 +439,13 @@ export default {
       isNotAllToDoSubTaskAlert: false,
       isNotAllDoneSubTaskAlert: false,
     };
+  },
+  watch: {
+    dailyScheduleId() {
+      if (this.dailyScheduleId !== 0) {
+        this.fetchReviewCycles();
+      }
+    },
   },
   methods: {
     showTaskForm() {
@@ -459,6 +488,15 @@ export default {
       task.showTaskDifficultyForm = !task.showTaskDifficultyForm;
     },
 
+    showTaskReviewForm(task) {
+      this.closeAllTaskReviewForm();
+      task.showTaskReviewForm = !task.showTaskReviewForm;
+    },
+
+    closeAllTaskReviewForm() {
+      this.items.forEach(task => task.showTaskReviewForm = false);
+    },
+
     showSubTaskCreateForm(task) {
       this.closeAllSubTaskCreateForm();
       this.newSubTaskName = '';
@@ -490,6 +528,11 @@ export default {
 
     showSubTaskStatusForm(subTask) {
       subTask.showSubTaskStatusForm = !subTask.showSubTaskStatusForm;
+    },
+
+    selectReviewCycle(reviewCycle) {
+      this.selectedReviewCycleId = reviewCycle.id;
+      this.reviewMessage = reviewCycle.name;
     },
 
     async addTask() {
@@ -639,6 +682,29 @@ export default {
       }
     },
 
+    async fetchReviewCycles() {
+      try {
+        const response = await getReviewCyclesApi();
+        this.reviewCycles = response.data;
+      } catch (error) {
+        this.handleServerError(error);
+      }
+    },
+
+    async reviewTask(task) {
+      try {
+        await reviewTaskApi( {
+          taskId: task.id,
+          reviewCycleId: this.selectedReviewCycleId,
+          startDate: this.date
+        });
+        this.reviewMessage = '과제 복습 주기를 선택하세요';
+        task.showTaskReviewForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+      }
+    },
+
     async createSubTask(task) {
       try {
         const response = await saveSubTaskApi( {
@@ -720,7 +786,6 @@ export default {
         return;
       }
     },
-
   },
 };
 </script>
