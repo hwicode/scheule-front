@@ -418,9 +418,8 @@ import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 import { 
   saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi, 
-  changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, getReviewCyclesApi, reviewTaskApi,
-  cancelReviewdTaskApi, saveSubTaskApi, changeSubTaskNameApi, deleteSubTaskApi,
-  changeSubTaskStatusApi } from '@/api/tasks.js';
+  changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, reviewTaskApi, cancelReviewdTaskApi,
+  saveSubTaskApi, changeSubTaskNameApi, deleteSubTaskApi, changeSubTaskStatusApi } from '@/api/tasks.js';
 
 export default {
   name: 'Tasks',
@@ -432,10 +431,10 @@ export default {
     dailyScheduleId: Number,
     date: String,
     items: Array,
+    reviewCycles: Array,
   },
   data() {
     return {
-      reviewCycles: [],
       reviewMessage: '과제 복습 주기를 선택하세요',
 
       isShowTaskForm: false,
@@ -456,13 +455,6 @@ export default {
       isNotAllToDoSubTaskAlert: false,
       isNotAllDoneSubTaskAlert: false,
     };
-  },
-  watch: {
-    dailyScheduleId() {
-      if (this.dailyScheduleId !== 0) {
-        this.fetchReviewCycles();
-      }
-    },
   },
   methods: {
     showTaskForm() {
@@ -711,15 +703,6 @@ export default {
       } catch (error) {
         this.handleServerError(error);
         return;
-      }
-    },
-
-    async fetchReviewCycles() {
-      try {
-        const response = await getReviewCyclesApi();
-        this.reviewCycles = response.data;
-      } catch (error) {
-        this.handleServerError(error);
       }
     },
 

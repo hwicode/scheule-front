@@ -24,7 +24,7 @@
   <div class="card">
     <div class="card-header d-flex align-items-center justify-content-between">
       <h4 class="h4-responsive">Memo List</h4>
-      <button @click="showAllMemos" class="btn btn-sm border-dark border-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+      <button class="btn btn-sm border-dark border-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
         <i class="bi bi-list"></i>
       </button>
     </div>
@@ -47,7 +47,6 @@ export default {
   data() {
     return {
       memos: [],
-      showAll: false,
     };
   },
   computed: {
@@ -63,9 +62,6 @@ export default {
     },
   },
   methods: {
-    showAllMemos() {
-      this.showAll = true;
-    },
 
     async fetchMemos() {
       try {
@@ -75,6 +71,7 @@ export default {
         console.log(`오류가 발생했습니다: ${error.message}`);
       }
     },
+
   },
 };
 </script>

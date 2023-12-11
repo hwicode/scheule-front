@@ -51,10 +51,6 @@ function changeTaskDifficultyApi(dto) {
     });
 }
 
-function getReviewCyclesApi() {
-    return api.get(`/dailyschedule/review-cycles`);
-}
-
 function reviewTaskApi(dto) {
     return api.post(`/dailyschedule/tasks/${dto.taskId}/review`, 
     {
@@ -107,7 +103,6 @@ function changeSubTaskStatusApi(dto) {
 
 export { 
     saveTaskApi, changeTaskNameApi, deleteTaskApi, changeTaskStatusApi,
-    changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, getReviewCyclesApi, reviewTaskApi,
-    cancelReviewdTaskApi, saveSubTaskApi, changeSubTaskNameApi, deleteSubTaskApi,
-    changeSubTaskStatusApi
+    changeTaskPriorityOrImportanceApi, changeTaskDifficultyApi, reviewTaskApi, cancelReviewdTaskApi,
+    saveSubTaskApi, changeSubTaskNameApi, deleteSubTaskApi, changeSubTaskStatusApi
 };
