@@ -23,5 +23,20 @@ function saveReviewCycleApi(dto) {
         cycle: dto.cycle
     })
 }
+
+function changeReviewCycleNameApi(dto) {
+    return api.patch(`/dailyschedule/review-cycles/${dto.reviewCycleId}/name`, { newReviewCycleName: dto.newReviewCycleName });
+}
+
+function changeReviewCyclePeriodApi(dto) {
+    return api.patch(`/dailyschedule/review-cycles/${dto.reviewCycleId}/cycle`, { cycle: dto.cycle });
+}
+
+function deleteReviewCycleApi(reviewCycleId) {
+    return api.delete(`/dailyschedule/review-cycles/${reviewCycleId}`);
+}
   
-export { getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, saveReviewCycleApi };
+export { 
+    getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
+    saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi 
+};

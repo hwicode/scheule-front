@@ -43,20 +43,70 @@
 
     <div v-if="isShowAllReviewCycles" class="d-flex justify-content-end my-3">
       <div class="list-group" style="width: 50%;">
-        <button v-for="(reviewCycle, index) in reviewCycles" :key="index" type="button" data-bs-toggle="dropdown" class="list-group-item list-group-item-action">
-          <div class="fw-bold">{{ reviewCycle.name }}</div>
-          <div>{{ reviewCycle.reviewCycleDates }}</div>
-        </button>
-        <button @click="showReviewCycleCreateForm()" type="button" class="list-group-item list-group-item-action d-flex">
-          <i class="bi bi-plus-circle-dotted"></i>
-          <div class="fw-bold mx-1">복습 주기 추가</div>
-        </button>
+        <div v-for="(reviewCycle, index) in reviewCycles" :key="index">
+          <button type="button" data-bs-toggle="dropdown" class="list-group-item list-group-item-action">
+            <div class="fw-bold">{{ reviewCycle.name }}</div>
+            <div>{{ reviewCycle.reviewCycleDates }}</div>
+          </button>
+          <ul class="dropdown-menu">
+            <li @click="showReviewCycleChangeForm(reviewCycle)" class="dropdown-item" style="cursor: pointer;">복습 주기 이름 변경</li>
+            <li @click="showReviewCyclePeriodForm(reviewCycle)" class="dropdown-item" style="cursor: pointer;">복습 주기 기간 변경</li>
+            <li @click="showReviewCycleDeleteForm(reviewCycle)" class="dropdown-item" style="cursor: pointer;">복습 주기 삭제</li>
+          </ul>
 
-        <ul class="dropdown-menu">
-          <li @click="showReviewCycleChangeForm(reviewCycle)" class="dropdown-item" style="cursor: pointer;">복습 주기 이름 변경</li>
-          <li @click="showReviewCyclePeriodForm(reviewCycle)" class="dropdown-item" style="cursor: pointer;">복습 주기 기간 변경</li>
-          <li @click="showReviewCycleDeleteForm(reviewCycle)" class="dropdown-item" style="cursor: pointer;">복습 주기 삭제</li>
-        </ul>
+          <div v-if="reviewCycle.showReviewCycleChangeForm" class="border px-1 py-1">
+            <form @submit.prevent="changeReviewCycleName(reviewCycle)">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label">복습 주기 이름 변경</label>
+                <button @click="reviewCycle.showReviewCycleChangeForm = !reviewCycle.showReviewCycleChangeForm;" type="button" class="btn-close"></button>
+              </div>
+              <div class="input-group">
+                <input v-model="newReviewCycleName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
+                <button type="submit" class="btn btn-secondary form-btn">변경</button>
+              </div>
+            </form>
+            <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+          </div>
+
+          <div v-if="reviewCycle.showReviewCycleDeleteForm" class="border px-1 py-1">
+            <form @submit.prevent="deleteReviewCycle(reviewCycle)">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label">복습 주기 삭제</label>
+                <button @click="reviewCycle.showReviewCycleDeleteForm = !reviewCycle.showReviewCycleDeleteForm;" type="button" class="btn-close"></button>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-secondary form-btn">삭제</button>
+              </div>
+            </form>
+            <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+          </div>
+
+          <div v-if="reviewCycle.showReviewCyclePeriodForm" class="border px-1 py-1">
+            <form @submit.prevent="changeReviewCyclePeriod(reviewCycle)">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label">복습 주기 기간 변경</label>
+                <button @click="reviewCycle.showReviewCyclePeriodForm = !reviewCycle.showReviewCyclePeriodForm;" type="button" class="btn-close"></button>
+              </div>
+              <label class="form-label fw-bold">새로운 복습 주기 : {{ [...cycleNumbers].sort() }}</label>
+              <div class="input-group mb-3">
+                <input v-model.number="newCycleNumber" class="form-control" placeholder="새로운 복습 주기에 기간(일)을 추가하세요">
+                <button @click="addNumber()" type="button" class="btn btn-secondary">추가</button>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary form-btn">저장</button>
+              </div>
+            </form>
+            <AlertWarning @turnOff="isNotValidNumberAlert = $event" message="복습 주기 기간은 1과 60사이의 숫자만 가능합니다." :isVisible="isNotValidNumberAlert"/>
+          <AlertWarning @turnOff="isNotValidReviewCycleAlert = $event" message="복습 주기가 존재해야 합니다." :isVisible="isNotValidReviewCycleAlert"/>
+            <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+          </div>
+
+        </div>
+
+        <button @click="showReviewCycleCreateForm()" type="button" class="list-group-item list-group-item-action d-flex">
+            <i class="bi bi-plus-circle-dotted"></i>
+            <div class="fw-bold mx-1">복습 주기 추가</div>
+        </button>
 
         <div v-if="isShowReviewCycleForm" class="border px-2 py-2">
           <form @submit.prevent="addReviewCycle">
@@ -77,12 +127,12 @@
             </div>
           </form>
           <AlertWarning @turnOff="isNotValidNumberAlert = $event" message="복습 주기 기간은 1과 60사이의 숫자만 가능합니다." :isVisible="isNotValidNumberAlert"/>
+          <AlertWarning @turnOff="isNotValidReviewCycleAlert = $event" message="복습 주기가 존재해야 합니다." :isVisible="isNotValidReviewCycleAlert"/>
           <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
         </div>
-        
+
       </div>
     </div>
-
   </div>
 
   <div class="container">
@@ -124,7 +174,10 @@ import MemoList from "@/components/MemoList.vue";
 import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 
-import { getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, saveReviewCycleApi } from '@/api/schedule.js';
+import { 
+  getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
+  saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi
+} from '@/api/schedule.js';
 
 export default {
   name: 'Schedule',
@@ -162,8 +215,9 @@ export default {
       isShowAllReviewCycles: false,
       isShowReviewCycleForm: false,
 
-      isNotValidNumberAlert: false,
       isServerErrorAlert: false,
+      isNotValidNumberAlert: false,
+      isNotValidReviewCycleAlert: false,
     };
   },
   methods: {
@@ -207,11 +261,41 @@ export default {
 
     showAllReviewCycles() {
       this.isShowAllReviewCycles = !this.isShowAllReviewCycles;
-      this.cycleNumbers = new Set();
     },
 
     showReviewCycleCreateForm() {
       this.isShowReviewCycleForm = !this.isShowReviewCycleForm;
+      this.newReviewCycleName = '';
+      this.cycleNumbers = new Set();
+    },
+
+    showReviewCycleChangeForm(reviewcycle) {
+      this.closeAllReviewCycleChangeForm();
+      reviewcycle.showReviewCycleChangeForm = !reviewcycle.showReviewCycleChangeForm;
+      this.newReviewCycleName = '';
+    },
+
+    closeAllReviewCycleChangeForm() {
+      this.reviewCycles.forEach(reviewCycle => reviewCycle.showReviewCycleChangeForm = false);
+    },
+
+    showReviewCyclePeriodForm(reviewcycle) {
+      this.closeAllReviewCyclePeriodForm();
+      reviewcycle.showReviewCyclePeriodForm = !reviewcycle.showReviewCyclePeriodForm;
+      this.cycleNumbers = new Set();
+    },
+
+    closeAllReviewCyclePeriodForm() {
+      this.reviewCycles.forEach(reviewCycle => reviewCycle.showReviewCyclePeriodForm = false);
+    },
+
+    showReviewCycleDeleteForm(reviewcycle) {
+      this.closeAllReviewCycleDeleteForm();
+      reviewcycle.showReviewCycleDeleteForm = !reviewcycle.showReviewCycleDeleteForm;
+    },
+
+    closeAllReviewCycleDeleteForm() {
+      this.reviewCycles.forEach(reviewCycle => reviewCycle.showReviewCycleDeleteForm = false);
     },
 
     addNumber() {
@@ -344,13 +428,32 @@ export default {
     async fetchReviewCycles() {
       try {
         const response = await getReviewCyclesApi();
-        this.reviewCycles = response.data;
+        this.initializeReviewCycles(response.data);
       } catch (error) {
         this.handleServerError(error);
       }
     },
 
+    initializeReviewCycles(reviewCycles) {
+      this.reviewCycles = reviewCycles.map(reviewCycle => {
+        return this.initializeReviewCycle(reviewCycle);
+      })
+    },
+
+    initializeReviewCycle(reviewCycle) {
+      return {
+          ...reviewCycle,
+          showReviewCycleChangeForm: false,
+          showReviewCyclePeriodForm: false,
+          showReviewCycleDeleteForm: false,
+      };
+    },
+
     async addReviewCycle() {
+      if (this.cycleNumbers.size === 0) {
+        this.isNotValidReviewCycleAlert = true;
+        return;
+      }
       try {
         const response = await saveReviewCycleApi( 
           {
@@ -359,11 +462,13 @@ export default {
           } 
         );
         this.isShowReviewCycleForm = false;
-        this.reviewCycles.push( {
+        const newReviewCycle = {
           id: response.data.reviewCycleId,
           name: response.data.reviewCycleName,
           reviewCycleDates: response.data.cycle
-        })
+        }
+        this.reviewCycles.push(this.initializeReviewCycle(newReviewCycle));
+        console.log(this.reviewCycles)
       } catch (error) {
         this.handleServerError(error);
       }
@@ -372,6 +477,47 @@ export default {
     handleServerError(error) {
       this.isServerErrorAlert = true;
       console.log(`오류가 발생했습니다: ${error}`);
+    },
+
+    async changeReviewCycleName(reviewCycle) {
+      try {
+        const response = await changeReviewCycleNameApi( {
+          reviewCycleId: reviewCycle.id,
+          newReviewCycleName: this.newReviewCycleName
+        });
+        reviewCycle.name = response.data.newReviewCycleName;
+        reviewCycle.showReviewCycleChangeForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+      }
+    },
+
+    async changeReviewCyclePeriod(reviewCycle) {
+      if (this.cycleNumbers.size === 0) {
+        this.isNotValidReviewCycleAlert = true;
+        return;
+      }
+      try {
+        const response = await changeReviewCyclePeriodApi( {
+          reviewCycleId: reviewCycle.id,
+          cycle: [...this.cycleNumbers].sort()
+        });
+        reviewCycle.reviewCycleDates = response.data.cycle;
+        reviewCycle.showReviewCyclePeriodForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+      }
+    },
+
+    async deleteReviewCycle(reviewCycle) {
+      try {
+        await deleteReviewCycleApi(reviewCycle.id);
+        this.reviewCycles = this.reviewCycles.filter(item => item.id !== reviewCycle.id);
+        reviewCycle.showReviewCycleDeleteForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+        return;
+      }
     },
 
   },
@@ -412,8 +558,21 @@ export default {
     font-size: 2.2vw;
   }
 
+  .form-label {
+    font-size: 2.0vw;
+  }
+
+  .form-control {
+    font-size: 1.75vw;
+  }
+
+  .form-btn {
+    font-size: 1.25vw;
+    padding: 2px 4px;
+  }
+
   .label-text {
-    font-size: 1.5vw;
+    font-size: 1.25vw;
   }
 }
 </style>
