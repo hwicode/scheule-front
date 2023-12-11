@@ -23,11 +23,17 @@
 
     <div class="row">
       <div class="col">    
-          <div class="d-flex justify-content-center my-2 wrap">
-            <div v-for="tag in tags" :key="tag" class="oval-label mx-2">
-              <span class="label-text">{{ tag.name }}</span>
-            </div>
-          </div> 
+        <div class="d-flex justify-content-center my-2 wrap">
+          <div v-for="tag in tags" :key="tag" class="oval-label mx-2">
+            <span class="label-text">{{ tag.name }}</span>
+          </div>
+        </div> 
+
+        <div class="d-flex justify-content-center">
+          <button @click="showTaskForm" class="btn px-1">
+            <i class="bi bi-plus-circle-dotted fs-4" style="color: white;"></i>
+          </button>  
+        </div>
       </div>
     </div>
 
@@ -97,7 +103,7 @@
               </div>
             </form>
             <AlertWarning @turnOff="isNotValidNumberAlert = $event" message="복습 주기 기간은 1과 60사이의 숫자만 가능합니다." :isVisible="isNotValidNumberAlert"/>
-          <AlertWarning @turnOff="isNotValidReviewCycleAlert = $event" message="복습 주기가 존재해야 합니다." :isVisible="isNotValidReviewCycleAlert"/>
+            <AlertWarning @turnOff="isNotValidReviewCycleAlert = $event" message="복습 주기가 존재해야 합니다." :isVisible="isNotValidReviewCycleAlert"/>
             <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
           </div>
 
@@ -154,13 +160,61 @@
       <div class="col-md-8 my-3">
         <div class="card">
           <div class="card-header d-flex align-items-center justify-content-between">
-            <h4>Review</h4>
-            {{ this.emoji }}
+            <h4 @click="isShowReviewForm = !isShowReviewForm" class="name-hover" style="cursor: pointer;">Review</h4>
+            <div @click="isShowEmojiForm = !isShowEmojiForm" style="cursor: pointer;">{{ emojiMap.get(emoji) }}</div>
           </div>
           <div class="card-body">
             <p class="card-text">{{ this.review }}</p>
           </div>
         </div>
+
+        <div v-if="isShowEmojiForm" class="border px-1 py-1" style="background-color: white; width: 50%;">
+          <form @submit.prevent="changeEmoji()">
+            <div class="d-flex justify-content-between mb-2">
+              <label class="form-label fw-bold">이모지 변경</label>
+              <button @click="isShowEmojiForm = !isShowEmojiForm" type="button" class="btn-close"></button>
+            </div>
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="form-check form-check-inline mx-2">
+                  <input v-model="selectedEmoji" value="GOOD" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
+                  <label class="form-check-label" for="flexRadioDefault1">
+                    {{ emojiMap.get('GOOD') }}
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-2">
+                  <input v-model="selectedEmoji" value="NOT_BAD" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2">
+                  <label class="form-check-label" for="flexRadioDefault2">
+                    {{ emojiMap.get('NOT_BAD') }}
+                  </label>
+                </div>
+                <div class="form-check form-check-inline mx-2">
+                  <input v-model="selectedEmoji" value="BAD" class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3">
+                  <label class="form-check-label" for="flexRadioDefault3">
+                    {{ emojiMap.get('BAD') }}
+                  </label>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary form-btn">변경</button>
+            </div>
+          </form>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
+        <div v-if="isShowReviewForm" class="border px-1 py-1" style="background-color: white;">
+          <form @submit.prevent="changeReview()">
+            <div class="d-flex justify-content-between mb-1">
+              <label class="form-label fw-bold">오늘의 회고!</label>
+              <button @click="isShowReviewForm = !isShowReviewForm" type="button" class="btn-close"></button>
+            </div>
+            <textarea v-model="newReview" class="form-control mb-3" rows="4"></textarea>
+            <div class="text-center">
+              <button type="submit" class="btn btn-secondary form-btn">확인</button>
+            </div>
+          </form>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
       </div>
     </div>
    </div>
@@ -176,8 +230,8 @@ import AlertServerError from "@/components/basic/AlertServerError.vue";
 
 import { 
   getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
-  saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi
-} from '@/api/schedule.js';
+  saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi,
+  changeEmojiAndReviewApi} from '@/api/schedule.js';
 
 export default {
   name: 'Schedule',
@@ -201,12 +255,16 @@ export default {
       emoji: undefined,
       mainTag: '',
       review: '',
+      newReview: '',
+
+      selectedEmoji: undefined,
 
       items: [],
       tasks: new Map(),
       subTasks: new Map(),
       tags: [],
       reviewCycles: [],
+      emojiMap: new Map(),
 
       newReviewCycleName: '',
       cycleNumbers: new Set(),
@@ -214,6 +272,8 @@ export default {
 
       isShowAllReviewCycles: false,
       isShowReviewCycleForm: false,
+      isShowEmojiForm: false,
+      isShowReviewForm: false,
 
       isServerErrorAlert: false,
       isNotValidNumberAlert: false,
@@ -343,6 +403,7 @@ export default {
       this.review = data.review;
       this.initializeItems(data.taskQueryResponses);
       this.initializeTasksAndSubTasks();
+      this.initializeEmojiMap();
     },
 
     initializeItems(taskResponses) {
@@ -390,6 +451,12 @@ export default {
         subItems.push(...item.subTaskQueryResponses)
       });
       this.subTasks = new Map(subItems.map(subTask => [subTask.id, subTask.name]));
+    },
+
+    initializeEmojiMap() {
+      this.emojiMap.set('GOOD', '😁');
+      this.emojiMap.set('NOT_BAD', '🙂');
+      this.emojiMap.set('BAD', '😟');
     },
 
     handleFetchError(error, date) {
@@ -468,7 +535,6 @@ export default {
           reviewCycleDates: response.data.cycle
         }
         this.reviewCycles.push(this.initializeReviewCycle(newReviewCycle));
-        console.log(this.reviewCycles)
       } catch (error) {
         this.handleServerError(error);
       }
@@ -520,6 +586,36 @@ export default {
       }
     },
 
+    async changeEmoji() {
+      try {
+        const response = await changeEmojiAndReviewApi( {
+          dailyToDoListId: this.id,
+          review: this.review,
+          emoji: this.selectedEmoji
+        });
+        this.emoji = response.data.modifiedEmoji;
+        this.isShowEmojiForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+        return;
+      }
+    },
+
+    async changeReview() {
+      try {
+        const response = await changeEmojiAndReviewApi( {
+          dailyToDoListId: this.id,
+          review: this.newReview,
+          emoji: this.emoji
+        });
+        this.review = response.data.modifiedReview;
+        this.isShowReviewForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+        return;
+      }
+    },
+
   },
   created() {
     const date = new Date(this.$route.query.date);
@@ -545,9 +641,18 @@ export default {
   border-radius: 10px;
 }
 
+.name-hover:hover {
+    color: #aeac8d; 
+    transition: background-color 0.3s; 
+}
+
 @media screen and (max-width: 700px) {
   .btn {
     font-size: 2vw;
+  }
+
+  .btn-close {
+    font-size: 2.5vw;
   }
 
   span {
@@ -571,8 +676,18 @@ export default {
     padding: 2px 4px;
   }
 
+  .form-check {
+    font-size: 2.0vw;
+    min-height: 0;
+  }
+
   .label-text {
     font-size: 1.25vw;
+  }
+
+  .form-btn {
+    font-size: 1.25vw;
+    padding: 2px 4px;
   }
 }
 </style>

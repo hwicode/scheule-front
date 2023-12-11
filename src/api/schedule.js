@@ -35,8 +35,16 @@ function changeReviewCyclePeriodApi(dto) {
 function deleteReviewCycleApi(reviewCycleId) {
     return api.delete(`/dailyschedule/review-cycles/${reviewCycleId}`);
 }
+
+function changeEmojiAndReviewApi(dto) {
+    return api.patch(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/information`, {
+        review: dto.review,
+        emoji: dto.emoji
+    });
+}
   
 export { 
     getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
-    saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi 
+    saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi,
+    changeEmojiAndReviewApi
 };
