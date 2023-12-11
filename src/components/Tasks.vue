@@ -90,7 +90,7 @@
     <ul class="list-group">
       <li v-for="(item, index) in items" :key="index" class="list-group-item">
         <div class="d-flex justify-content-between align-items-center">
-          <span class="fw-bold name-hover"  data-bs-toggle="dropdown" style="cursor: pointer;">{{ item.name }}</span>
+          <span class="fw-bold name-hover"  data-bs-toggle="dropdown">{{ item.name }}</span>
           <ul class="dropdown-menu">
             <li @click="showTaskChangeForm(item)" class="dropdown-item" style="cursor: pointer;">과제 이름 변경</li>
             <li @click="showTaskDeleteForm(item)" class="dropdown-item" style="cursor: pointer;">과제 삭제</li>
@@ -292,7 +292,7 @@
               <button @click="item.showTaskReviewForm = !item.showTaskReviewForm;" type="button" class="btn-close"></button>
             </div>
             <div class="input-group">
-              <span class="name-hover form-control dropdown-toggle"  data-bs-toggle="dropdown" style="cursor: pointer;">{{ reviewMessage }}</span>
+              <span class="name-hover form-control dropdown-toggle"  data-bs-toggle="dropdown">{{ reviewMessage }}</span>
                 <ul class="dropdown-menu">
                   <li @click="selectReviewCycle(item)" v-for="(item, index) in reviewCycles" :key="index" class="dropdown-item" style="cursor: pointer; white-space: normal;">{{ item.name }} {{ item.reviewCycleDates }}</li>
                 </ul>
@@ -333,7 +333,7 @@
         <ul v-if="item.subTaskQueryResponses" class="list-group mt-2 list-group-flush">
           <li v-for="(subItem, subIndex) in item.subTaskQueryResponses" :key="subIndex" class="list-group-item">
             <div class="d-flex align-items-center">
-              <span class="name-hover" data-bs-toggle="dropdown" style="cursor: pointer;">{{ subItem.name }}</span>
+              <span class="name-hover" data-bs-toggle="dropdown">{{ subItem.name }}</span>
               <ul class="dropdown-menu">
                 <li @click="showSubTaskChangeForm(item, subItem)" class="dropdown-item" style="cursor: pointer;">서브 과제 이름 변경</li>
                 <li @click="showSubTaskDeleteForm(item, subItem)" class="dropdown-item" style="cursor: pointer;">서브 과제 삭제</li>
@@ -821,12 +821,6 @@ export default {
 </script>
 
 <style scoped>
-
-.name-hover:hover {
-    color: #aeac8d; 
-    transition: background-color 0.3s; 
-}
-
  @media screen and (max-width: 700px) { 
 
   .form-label {

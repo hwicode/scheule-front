@@ -38,7 +38,7 @@
         <div class="accordion" :id="'accordionExample' + index">
           <div class="accordion-item">
             <div class="accordion-header d-flex justify-content-between align-items-center">
-              <div class="accordion-name text-break px-1" data-bs-toggle="dropdown" style="cursor: pointer;">
+              <div class="accordion-name name-hover text-break px-1" data-bs-toggle="dropdown">
                 {{ goal.name }}
               </div>
               <ul class="dropdown-menu">
@@ -167,7 +167,7 @@
               <div class="accordion-body">
                 <div v-for="(subGoal, index) in goal.subGoalResponses" :key="index">
                   <div class="d-flex align-items-center">
-                    <div class="accordion-name text-break px-1" data-bs-toggle="dropdown" style="cursor: pointer;">
+                    <div class="accordion-name name-hover text-break px-1" data-bs-toggle="dropdown">
                       {{ subGoal.name }}
                     </div>
                     <ul class="dropdown-menu">
@@ -569,11 +569,6 @@ export default {
  .accordion-name {
   font-size: 1.0vw;
  }
-
- .accordion-name:hover {
-    color: #aeac8d; 
-    transition: background-color 0.3s; 
-}
 
  @media screen and (max-width: 700px) { 
   .container {
