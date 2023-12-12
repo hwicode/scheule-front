@@ -100,15 +100,65 @@
           </td>
           <td class="text-center">{{ formatDuration(calculateLearningTime(index)) }}</td>
           <td  class="text-center">
-            <div v-if="studySession.taskId" class="name-hover">
+            <div v-if="studySession.taskId" class="name-hover" data-bs-toggle="dropdown">
               {{ tasks.get(studySession.taskId) }}
             </div>
-            <div v-else-if="studySession.subTaskId" class="name-hover">
+            <div v-else-if="studySession.subTaskId" class="name-hover" data-bs-toggle="dropdown">
+              {{ subTasks.get(studySession.subTaskId) }}
+            </div>
+            <div v-else class="name-hover" data-bs-toggle="dropdown">
               {{ formatSubject(studySession.subject) }}
             </div>
-            <div v-else class="name-hover">
-              {{ formatSubject(studySession.subject) }}
+            <ul class="dropdown-menu">
+              <li @click="showChangeLearningSubjectForm(studySession)" class="dropdown-item" style="cursor: pointer;">학습 주제 변경</li>
+              <li @click="showDeleteLearningSubjectForm(studySession)" class="dropdown-item" style="cursor: pointer;">학습 주제 삭제</li>
+            </ul>
+
+            <div v-if="studySession.showDeleteLearningSubjectForm" class="border px-1 py-1 my-2">
+              <form @submit.prevent="deleteLearningSubject(studySession)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">학습 주제를 삭제할까요?</label>
+                  <button @click="studySession.showDeleteLearningSubjectForm = !studySession.showDeleteLearningSubjectForm;" type="button" class="btn-close"></button>
+                </div>
+                <div class="text-center">
+                  <button type="submit" class="btn btn-secondary form-btn">확인</button>
+                </div>
+              </form>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
+
+            <div v-if="studySession.showChangeLearningSubjectForm" class="border px-1 py-1 my-2">
+              <form @submit.prevent="deleteLearningSubject(studySession)">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <label class="form-label">학습 주제 변경</label>
+                  <button  @click="studySession.showChangeLearningSubjectForm = !studySession.showChangeLearningSubjectForm;" type="button" class="btn-close"></button>
+                </div>
+
+                <label class="form-label">과제로 주제 설정</label>
+                <div class="input-group mb-1">
+                  <select @change="selectTask" class="form-select">
+                    <option v-for="(task, index) in tasks" :key="index" class="form-control">{{ task[1] }}</option>
+                  </select>
+                  <button @click="changeTaskOfSubject(studySession)" type="button" class="btn btn-secondary form-btn">변경</button>
+                </div>
+
+                <label class="form-label">서브 과제로 주제 설정</label>
+                <div class="input-group mb-1">
+                  <select @change="selectSubTask" class="form-select">
+                    <option v-for="(subTask, index) in subTasks" :key="index" class="form-control">{{ subTask[1] }}</option>
+                  </select>
+                  <button @click="changeSubTaskOfSubject(studySession)" type="button" class="btn btn-secondary form-btn">변경</button>
+                </div>
+
+                <label class="form-label">주제 직접 입력</label>
+                <div class="input-group">
+                  <input v-model="newSubject" type="text" class="form-control" placeholder="새로운 주제를 입력하세요" required>
+                  <button @click="changeSubject(studySession)" type="button" class="btn btn-secondary form-btn">변경</button>
+                </div>
+              </form>
+              <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+            </div>
+
           </td>
         </tr>
       </tbody>
@@ -117,7 +167,11 @@
 </template>
 
 <script>
-import { getLearningTimes, saveLearningTimeApi, changeStartTimeApi, changeEndTimeApi, deleteLearningTime } from '@/api/time-table.js';
+import {
+   getLearningTimes, saveLearningTimeApi, changeStartTimeApi, changeEndTimeApi, 
+   deleteLearningTimeApi, deleteLearningSubjectApi, changeSubjectApi, changeTaskOfSubjectApi,
+   changeSubTaskOfSubjectApi,
+} from '@/api/time-table.js';
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 
 export default {
@@ -138,6 +192,9 @@ export default {
       showLearningTimeForm: false,
       inputHour: null,
       inputMinute: null,
+      newSubject: null,
+      newTaskId: null,
+      newSubTaskId: null
     };
   },
   methods: {
@@ -169,6 +226,7 @@ export default {
     },
 
     showEndLearningTimeForm(studySession) {
+      this.closeAllEndLearningTimeForm();
       studySession.showEndLearningTimeForm = !studySession.showEndLearningTimeForm;
     },
 
@@ -179,6 +237,7 @@ export default {
     showChangeStartTimeForm(studySession) {
       this.inputHour = null;
       this.inputMinute = null;
+      this.closeAllChangeStartTimeForm();
       studySession.showChangeStartTimeForm = !studySession.showChangeStartTimeForm;
     },
 
@@ -189,6 +248,7 @@ export default {
     showChangeEndTimeForm(studySession) {
       this.inputHour = null;
       this.inputMinute = null;
+      this.closeAllChangeEndTimeForm();
       studySession.showChangeEndTimeForm = !studySession.showChangeEndTimeForm;
     },
 
@@ -197,11 +257,49 @@ export default {
     },
 
     showDeleteLearningTimeForm(studySession) {
+      this.closeAllDeleteLearningTimeForm();
       studySession.showDeleteLearningTimeForm = !studySession.showDeleteLearningTimeForm;
     },
 
     closeAllDeleteLearningTimeForm() {
       this.studySessions.forEach(studySession => studySession.showDeleteLearningTimeForm = false);
+    },
+
+    showChangeLearningSubjectForm(studySession) {
+      this.newSubject = null;
+      this.closeAllChangeLearningSubjectForm();
+      studySession.showChangeLearningSubjectForm = !studySession.showChangeLearningSubjectForm;
+    },
+
+    closeAllChangeLearningSubjectForm() {
+      this.studySessions.forEach(studySession => studySession.showChangeLearningSubjectForm = false);
+    },
+
+    showDeleteLearningSubjectForm(studySession) {
+      this.closeAllDeleteLearningSubjectForm();
+      studySession.showDeleteLearningSubjectForm = !studySession.showDeleteLearningSubjectForm;
+    },
+
+    closeAllDeleteLearningSubjectForm() {
+      this.studySessions.forEach(studySession => studySession.showDeleteLearningSubjectForm = false);
+    },
+
+    selectTask(event) {
+      const selectedTask = event.target.value;
+      for (let [key, value] of this.tasks.entries()) {
+        if (value === selectedTask) {
+          this.newTaskId = key;
+        }
+      }
+    },
+
+    selectSubTask(event) {
+      const selectedSubTask = event.target.value;
+      for (let [key, value] of this.subTasks.entries()) {
+        if (value === selectedSubTask) {
+          this.newSubTaskId = key;
+        }
+      }
     },
 
     async fetchLearningTimes() {
@@ -227,7 +325,12 @@ export default {
         showEndLearningTimeForm: false,
         showChangeStartTimeForm: false,
         showChangeEndTimeForm: false,
-        showDeleteLearningTimeForm: false
+        showDeleteLearningTimeForm: false,
+        showChangeLearningSubjectForm: false,
+        showDeleteLearningSubjectForm: false,
+        showTaskOfSubjectForm: false,
+        showSubTaskOfSubjectForm: false,
+        showSubjectForm: false,
       }
     },
 
@@ -248,11 +351,11 @@ export default {
           id: response.data.learningTimeId,
           startTime: response.data.startTime,
           endTime: null,
-          subject: '',
-          taskId: 0,
-          subTaskId: 0
+          subject: null,
+          taskId: null,
+          subTaskId: null
         }
-        this.studySessions.push(newLearningTime);
+        this.studySessions.push(this.initializeStudySession(newLearningTime));
         this.showLearningTimeForm = false;
       } catch (error) {
         this.handleServerError(error);
@@ -323,13 +426,72 @@ export default {
 
     async deleteLearningTime(studySession) {
       try {
-        await deleteLearningTime({ 
+        await deleteLearningTimeApi({ 
           timeTableId: this.dailyScheduleId,
           learningTimeId: studySession.id,
           startTime: studySession.startTime
         });
         this.studySessions = this.studySessions.filter(item => item.id !== studySession.id);
         studySession.showdeleteLearningTimeForm = false;
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
+
+    async deleteLearningSubject(studySession) {
+      try {
+        await deleteLearningSubjectApi(studySession.id);
+
+        this.deleteAllSubject(studySession);
+        studySession.showDeleteLearningSubjectForm = false;
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
+
+    deleteAllSubject(studySession) {
+      studySession.subject = null;
+      studySession.taskId = null;
+      studySession.subTaskId = null;
+    },
+
+    async changeTaskOfSubject(studySession) {
+      try {
+        await changeTaskOfSubjectApi( {
+          learningTimeId: studySession.id,
+          subjectOfTaskId: this.newTaskId
+        });
+        this.deleteAllSubject(studySession);
+        studySession.taskId = this.newTaskId;
+        studySession.showChangeLearningSubjectForm = false;
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
+
+    async changeSubTaskOfSubject(studySession) {
+      try {
+        await changeSubTaskOfSubjectApi( {
+          learningTimeId: studySession.id,
+          subjectOfSubTaskId: this.newSubTaskId
+        });
+        this.deleteAllSubject(studySession);
+        studySession.subTaskId = this.newSubTaskId;
+        studySession.showChangeLearningSubjectForm = false;
+      } catch (error) {
+        console.log(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
+
+    async changeSubject(studySession) {
+      try {
+        await changeSubjectApi( {
+          learningTimeId: studySession.id,
+          newSubject: this.newSubject
+        });
+        this.deleteAllSubject(studySession);
+        studySession.subject = this.newSubject;
+        studySession.showChangeLearningSubjectForm = false;
       } catch (error) {
         console.log(`오류가 발생했습니다: ${error.message}`);
       }

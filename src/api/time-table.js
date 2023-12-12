@@ -28,8 +28,37 @@ function changeEndTimeApi(dto) {
     });
 }
 
-function deleteLearningTime(dto) {
+function deleteLearningTimeApi(dto) {
     return api.delete(`/dailyschedule/timetables/${dto.timeTableId}/learning-times/${dto.learningTimeId}`, {params: { startTime: dto.startTime }});
 }
+
+function deleteLearningSubjectApi(learningTimeId) {
+    return api.delete(`/dailyschedule/learning-times/${learningTimeId}`);
+}
+
+function changeSubjectApi(dto) {
+    return api.patch(`/dailyschedule/learning-times/${dto.learningTimeId}/subject`,
+    {
+        newSubject: dto.newSubject
+    });
+}
+
+function changeTaskOfSubjectApi(dto) {
+    return api.patch(`/dailyschedule/learning-times/${dto.learningTimeId}/subject-of-task`, 
+    {
+        subjectOfTaskId: dto.subjectOfTaskId
+    });
+}
+
+function changeSubTaskOfSubjectApi(dto) {
+    return api.patch(`/dailyschedule/learning-times/${dto.learningTimeId}/subject-of-subtask`, 
+    {
+        subjectOfSubTaskId: dto.subjectOfSubTaskId
+    });
+}
   
-export { getLearningTimes, saveLearningTimeApi, changeStartTimeApi, changeEndTimeApi, deleteLearningTime };
+export { 
+    getLearningTimes, saveLearningTimeApi, changeStartTimeApi, changeEndTimeApi,
+    deleteLearningTimeApi, deleteLearningSubjectApi, changeSubjectApi, changeTaskOfSubjectApi,
+    changeSubTaskOfSubjectApi,
+};
