@@ -2,11 +2,24 @@
   <div>
     <div class="d-flex align-items-center">
       <h4>Study Time Table</h4>
-      <button @click="addLearningTime()" class="btn px-1">
+      <button @click="showLearningTimeForm = !showLearningTimeForm" class="btn px-1">
         <i class="bi bi-plus fs-4"></i>
       </button>  
     </div>
-    <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+
+    <div v-if="showLearningTimeForm" class="border px-1 py-1" style="width: 80%;">
+      <form @submit.prevent="addLearningTime()">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <label class="form-label">학습 시간을 추가하시나요?</label>
+          <button @click="showLearningTimeForm = !showLearningTimeForm;" type="button" class="btn-close"></button>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-secondary form-btn">확인</button>
+        </div>
+      </form>
+      <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+    </div>
+
     <table class="table">
       <thead>
         <tr>
@@ -19,9 +32,9 @@
         <tr v-for="(studySession, index) in studySessions" :key="index">
           <td class="name-hover">{{ formatTime(studySession.startTime) }} ~ {{ formatTime(studySession.endTime) }}</td>
           <td class="text-center">{{ formatDuration(calculateLearningTime(index)) }}</td>
-          <td v-if="studySession.taskId" class="text-center">{{ tasks.get(studySession.taskId) }}</td>
-          <td v-else-if="studySession.subTaskId" class="text-center">{{ subTasks.get(studySession.subTaskId) }}</td>
-          <td v-else class="text-center">{{ studySession.subject }}</td>
+          <td v-if="studySession.taskId" class="text-center name-hover">{{ tasks.get(studySession.taskId) }}</td>
+          <td v-else-if="studySession.subTaskId" class="text-center name-hover">{{ subTasks.get(studySession.subTaskId) }}</td>
+          <td v-else class="text-center name-hover">{{ formatSubject(studySession.subject) }}</td>
         </tr>
       </tbody>
     </table>
@@ -47,6 +60,7 @@ export default {
     return {
       studySessions: [],
       isServerErrorAlert: false,
+      showLearningTimeForm: false,
     };
   },
   methods: {
@@ -70,6 +84,13 @@ export default {
       return `${hours}h ${remainingMinutes}m`;
     },
 
+    formatSubject(subject) {
+      if (!subject) {
+        return '없음';
+      }
+      return subject
+    },
+
     async fetchLearningTimes() {
       const date = this.date;
       try {
@@ -82,6 +103,11 @@ export default {
 
     async addLearningTime() {
       try {
+        this.studySessions.map(session => {
+          if (!session.endTime) {
+            session.endTime = this.getStartTime();
+          }
+        })
         const response = await saveLearningTimeApi( 
           {
             timeTableId: this.dailyScheduleId,
@@ -97,6 +123,7 @@ export default {
           subTaskId: 0
         }
         this.studySessions.push(newLearningTime);
+        this.showLearningTimeForm = false;
       } catch (error) {
         this.handleServerError(error);
       }
@@ -121,4 +148,19 @@ export default {
 </script>
 
 <style scoped>
+@media screen and (max-width: 700px) { 
+  .form-label {
+    font-size: 2.5vw;
+  }
+
+  .form-btn {
+    font-size: 2.0vw;
+    padding: 2px 4px;
+  }
+
+  .btn-close {
+    font-size: 2.5vw;
+  }
+
+}
 </style>
