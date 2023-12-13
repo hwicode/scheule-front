@@ -7,5 +7,6 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 
 import './assets/global.css';
 import router from './routes/router.js'
+import store from './store/index.js'
 
-createApp(App).use(router).mount('#app')
+createApp(App).use(router).use(store).mount('#app')
