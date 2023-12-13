@@ -17,6 +17,9 @@
           <button type="submit" class="btn btn-secondary form-btn">확인</button>
         </div>
       </form>
+      <AlertWarning @turnOff="isDateValidatedAlert = $event" message="계획표의 날짜 또는 그 다음 날까지만 허용됩니다." :isVisible="isDateValidatedAlert"/>
+      <AlertWarning @turnOff="isOverlappingLearningTimeAlert = $event" message="다른 학습 시간 사이에 끼어들 수 없습니다." :isVisible="isOverlappingLearningTimeAlert"/>
+      <AlertWarning @turnOff="isStartTimeDuplicatedAlert = $event" message="시작 시간이 중복되었습니다." :isVisible="isStartTimeDuplicatedAlert"/>
       <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
     </div>
 
@@ -51,6 +54,9 @@
                   <button type="submit" class="btn btn-secondary form-btn">확인</button>
                 </div>
               </form>
+              <AlertWarning @turnOff="isDateValidatedAlert = $event" message="계획표의 날짜 또는 그 다음 날까지만 허용됩니다." :isVisible="isDateValidatedAlert"/>
+              <AlertWarning @turnOff="isOverlappingLearningTimeAlert = $event" message="다른 학습 시간 사이에 끼어들 수 없습니다." :isVisible="isOverlappingLearningTimeAlert"/>
+              <AlertWarning @turnOff="isEndTimeDuplicatedAlert = $event" message="종료 시간이 중복되었습니다." :isVisible="isEndTimeDuplicatedAlert"/>
               <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
@@ -66,6 +72,9 @@
                   <button type="submit" class="btn btn-secondary form-btn">확인</button>
                 </div>
               </form>
+              <AlertWarning @turnOff="isDateValidatedAlert = $event" message="계획표의 날짜 또는 그 다음 날까지만 허용됩니다." :isVisible="isDateValidatedAlert"/>
+              <AlertWarning @turnOff="isOverlappingLearningTimeAlert = $event" message="다른 학습 시간 사이에 끼어들 수 없습니다." :isVisible="isOverlappingLearningTimeAlert"/>
+              <AlertWarning @turnOff="isStartTimeDuplicatedAlert = $event" message="시작 시간이 중복되었습니다." :isVisible="isStartTimeDuplicatedAlert"/>
               <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
@@ -81,6 +90,9 @@
                   <button type="submit" class="btn btn-secondary form-btn">확인</button>
                 </div>
               </form>
+              <AlertWarning @turnOff="isDateValidatedAlert = $event" message="계획표의 날짜 또는 그 다음 날까지만 허용됩니다." :isVisible="isDateValidatedAlert"/>
+              <AlertWarning @turnOff="isOverlappingLearningTimeAlert = $event" message="다른 학습 시간 사이에 끼어들 수 없습니다." :isVisible="isOverlappingLearningTimeAlert"/>
+              <AlertWarning @turnOff="isEndTimeDuplicatedAlert = $event" message="종료 시간이 중복되었습니다." :isVisible="isEndTimeDuplicatedAlert"/>
               <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
@@ -173,11 +185,13 @@ import {
    changeSubTaskOfSubjectApi,
 } from '@/api/time-table.js';
 import AlertServerError from "@/components/basic/AlertServerError.vue";
+import AlertWarning from "@/components/basic/AlertWarning.vue";
 
 export default {
   name: 'TimeTable',
   components: {
     AlertServerError: AlertServerError,
+    AlertWarning: AlertWarning,
   },
   props: {
     date: String,
@@ -188,13 +202,19 @@ export default {
   data() {
     return {
       studySessions: [],
-      isServerErrorAlert: false,
-      showLearningTimeForm: false,
       inputHour: null,
       inputMinute: null,
       newSubject: null,
       newTaskId: null,
-      newSubTaskId: null
+      newSubTaskId: null,
+
+      showLearningTimeForm: false,
+
+      isServerErrorAlert: false,
+      isDateValidatedAlert: false,
+      isOverlappingLearningTimeAlert: false,
+      isStartTimeDuplicatedAlert: false,
+      isEndTimeDuplicatedAlert: false,
     };
   },
   methods: {
@@ -358,7 +378,7 @@ export default {
         this.studySessions.push(this.initializeStudySession(newLearningTime));
         this.showLearningTimeForm = false;
       } catch (error) {
-        this.handleServerError(error);
+        this.handleStartTimeError(error);
       }
     },
 
@@ -372,6 +392,22 @@ export default {
       const now = new Date();
       return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate()}`
       + `T${this.inputHour.toString().padStart(2, '0')}:${this.inputMinute.toString().padStart(2, '0')}:00`
+    },
+
+    handleStartTimeError(error) {
+      if (error.response && error.response.data.message === '계획표의 날짜 또는 그 다음 날까지만 허용됩니다.') {
+          this.isDateValidatedAlert = true;
+          return;
+      }
+      if (error.response && error.response.data.message === '다른 학습 시간 사이에 끼어들 수 없습니다.') {
+          this.isOverlappingLearningTimeAlert = true;
+          return;
+      }
+      if (error.response && error.response.data.message === '시작 시간이 중복되었습니다.') {
+          this.isStartTimeDuplicatedAlert = true;
+          return;
+      }
+      this.handleServerError();
     },
 
     handleServerError(error) {
@@ -390,8 +426,24 @@ export default {
         studySession.endTime = response.data.endTime;
         studySession.showEndLearningTimeForm = false;
       } catch (error) {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleEndTimeError(error);
       }
+    },
+
+    handleEndTimeError(error) {
+      if (error.response && error.response.data.message === '계획표의 날짜 또는 그 다음 날까지만 허용됩니다.') {
+          this.isDateValidatedAlert = true;
+          return;
+      }
+      if (error.response && error.response.data.message === '다른 학습 시간 사이에 끼어들 수 없습니다.') {
+          this.isOverlappingLearningTimeAlert = true;
+          return;
+      }
+      if (error.response && error.response.data.message === '종료 시간이 중복되었습니다.') {
+          this.isEndTimeDuplicatedAlert = true;
+          return;
+      }
+      this.handleServerError(error);
     },
 
     async changeStartTime(studySession) {
@@ -405,7 +457,7 @@ export default {
         studySession.startTime = response.data.newStartTime;
         studySession.showChangeStartTimeForm = false;
       } catch (error) {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleStartTimeError(error);
       }
     },
 
@@ -420,7 +472,7 @@ export default {
         studySession.endTime = response.data.endTime;
         studySession.showChangeEndTimeForm = false;
       } catch (error) {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleEndTimeError(error);
       }
     },
 
@@ -434,7 +486,7 @@ export default {
         this.studySessions = this.studySessions.filter(item => item.id !== studySession.id);
         studySession.showdeleteLearningTimeForm = false;
       } catch (error) {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleServerError(error);
       }
     },
 
@@ -445,7 +497,7 @@ export default {
         this.deleteAllSubject(studySession);
         studySession.showDeleteLearningSubjectForm = false;
       } catch (error) {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleServerError(error);
       }
     },
 
@@ -465,7 +517,7 @@ export default {
         studySession.taskId = this.newTaskId;
         studySession.showChangeLearningSubjectForm = false;
       } catch (error) {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleServerError(error);
       }
     },
 
@@ -479,7 +531,7 @@ export default {
         studySession.subTaskId = this.newSubTaskId;
         studySession.showChangeLearningSubjectForm = false;
       } catch (error) {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleServerError(error);
       }
     },
 
@@ -493,7 +545,7 @@ export default {
         studySession.subject = this.newSubject;
         studySession.showChangeLearningSubjectForm = false;
       } catch (error) {
-        console.log(`오류가 발생했습니다: ${error.message}`);
+        this.handleServerError(error);
       }
     },
   
