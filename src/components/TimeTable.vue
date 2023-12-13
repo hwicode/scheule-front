@@ -22,7 +22,7 @@
       <AlertWarning @turnOff="isStartTimeDuplicatedAlert = $event" message="시작 시간이 중복되었습니다." :isVisible="isStartTimeDuplicatedAlert"/>
       <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
     </div>
-
+    
     <table class="table" style="--bs-table-bg: none">
       <thead>
         <tr>
@@ -110,7 +110,7 @@
             </div>
             
           </td>
-          <td class="text-center">{{ formatDuration(calculateLearningTime(index)) }}</td>
+          <td class="text-center">{{ studySession.duration }}</td>
           <td  class="text-center">
             <div v-if="studySession.taskId" class="name-hover" data-bs-toggle="dropdown">
               {{ tasks.get(studySession.taskId) }}
@@ -218,24 +218,9 @@ export default {
     };
   },
   methods: {
-    calculateLearningTime(index) {
-      const session = this.studySessions[index];
-      const start = new Date(session.startTime);
-      const end = new Date(session.endTime);
-      if (!Number.isInteger(start) || !Number.isInteger(end) || end - start < 0) return;
-      return Math.floor((end - start) / (1000 * 60));
-    },
-
     formatTime(dateTime) {
       if (!dateTime) return; 
       return dateTime.split('T')[1].substring(0, 5);
-    },
-
-    formatDuration(minutes) {
-      if (!minutes) return '0h 0m';
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return `${hours}h ${remainingMinutes}m`;
     },
 
     formatSubject(subject) {
@@ -351,16 +336,32 @@ export default {
         showTaskOfSubjectForm: false,
         showSubTaskOfSubjectForm: false,
         showSubjectForm: false,
+        duration: this.makeDuration(studySession.startTime, studySession.endTime),
       }
+    },
+
+    makeDuration(startTime, endTime) {
+      return this.formatDuration(
+        this.calculateLearningTime(startTime, endTime)
+      );
+    },
+
+    calculateLearningTime(startTime, endTime) {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      if (end - start < 0) return;
+      return Math.floor((end - start) / (1000 * 60));
+    },
+
+    formatDuration(minutes) {
+      if (!minutes) return '0h 0m';
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      return `${hours}h ${remainingMinutes}m`;
     },
 
     async addLearningTime() {
       try {
-        this.studySessions.map(session => {
-          if (!session.endTime) {
-            session.endTime = this.getNowTime();
-          }
-        })
         const response = await saveLearningTimeApi( 
           {
             timeTableId: this.dailyScheduleId,
@@ -386,12 +387,6 @@ export default {
       const now = new Date();
       return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate()}`
       + `T${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:00`
-    },
-
-    getInputTime() {
-      const now = new Date();
-      return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate()}`
-      + `T${this.inputHour.toString().padStart(2, '0')}:${this.inputMinute.toString().padStart(2, '0')}:00`
     },
 
     handleStartTimeError(error) {
@@ -424,6 +419,7 @@ export default {
           endTime: this.getNowTime()
         });
         studySession.endTime = response.data.endTime;
+        studySession.duration = this.makeDuration(studySession.startTime, studySession.endTime);
         studySession.showEndLearningTimeForm = false;
       } catch (error) {
         this.handleEndTimeError(error);
@@ -455,6 +451,7 @@ export default {
           newStartTime: this.getInputTime()
         });
         studySession.startTime = response.data.newStartTime;
+        studySession.duration = this.makeDuration(studySession.startTime, studySession.endTime);
         studySession.showChangeStartTimeForm = false;
       } catch (error) {
         this.handleStartTimeError(error);
@@ -470,10 +467,17 @@ export default {
           endTime: this.getInputTime()
         });
         studySession.endTime = response.data.endTime;
+        studySession.duration = this.makeDuration(studySession.startTime, studySession.endTime);
         studySession.showChangeEndTimeForm = false;
       } catch (error) {
         this.handleEndTimeError(error);
       }
+    },
+
+    getInputTime() {
+      const now = new Date();
+      return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate()}`
+      + `T${this.inputHour.toString().padStart(2, '0')}:${this.inputMinute.toString().padStart(2, '0')}:00`
     },
 
     async deleteLearningTime(studySession) {
