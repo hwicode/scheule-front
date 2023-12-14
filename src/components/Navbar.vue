@@ -92,9 +92,6 @@ export default {
       });
     },
   },
-created() {
-    this.$store.dispatch('tags/fetchTags');
-  },
 }
 </script>
 
