@@ -139,15 +139,15 @@
               <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
             </div>
 
-            <div v-if="studySession.showChangeLearningSubjectForm" class="border px-1 py-1 my-2">
+            <div v-if="studySession.showChangeLearningSubjectForm" class="border px-1 py-1 my-2 text-start">
               <form @submit.prevent="deleteLearningSubject(studySession)">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <label class="form-label">학습 주제 변경</label>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                  <label class="form-label fw-bold">학습 주제 변경</label>
                   <button  @click="studySession.showChangeLearningSubjectForm = !studySession.showChangeLearningSubjectForm;" type="button" class="btn-close"></button>
                 </div>
 
                 <label class="form-label">과제로 주제 설정</label>
-                <div class="input-group mb-1">
+                <div class="input-group mb-2">
                   <select @change="selectTask" class="form-select">
                     <option v-for="(task, index) in tasks" :key="index" class="form-control">{{ task[1] }}</option>
                   </select>
@@ -155,7 +155,7 @@
                 </div>
 
                 <label class="form-label">서브 과제로 주제 설정</label>
-                <div class="input-group mb-1">
+                <div class="input-group mb-2">
                   <select @change="selectSubTask" class="form-select">
                     <option v-for="(subTask, index) in subTasks" :key="index" class="form-control">{{ subTask[1] }}</option>
                   </select>
@@ -512,6 +512,9 @@ export default {
     },
 
     async changeTaskOfSubject(studySession) {
+      if (!this.newTaskId) {
+        this.newTaskId = this.tasks.keys().next().value;
+      }
       try {
         await changeTaskOfSubjectApi( {
           learningTimeId: studySession.id,
@@ -526,6 +529,9 @@ export default {
     },
 
     async changeSubTaskOfSubject(studySession) {
+      if (!this.newSubTaskId) {
+        this.newSubTaskId = this.subTasks.keys().next().value;
+      }
       try {
         await changeSubTaskOfSubjectApi( {
           learningTimeId: studySession.id,
@@ -573,6 +579,14 @@ export default {
 
   .btn-close {
     font-size: 2.5vw;
+  }
+
+  .form-control {
+    font-size: 2.75vw;
+  }
+
+  .form-select {
+    font-size: 2.75vw;
   }
 
 }
