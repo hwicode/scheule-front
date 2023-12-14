@@ -42,9 +42,15 @@ function changeEmojiAndReviewApi(dto) {
         emoji: dto.emoji
     });
 }
+
+function addTagToScheduleApi(dto) {
+    return api.post(`/dailyschedule/daily-tag-lists/${dto.dailyTagListId}/tags`, {
+        tagId: dto.tagId
+    });
+}
   
 export { 
     getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
     saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi,
-    changeEmojiAndReviewApi
+    changeEmojiAndReviewApi, addTagToScheduleApi
 };
