@@ -23,17 +23,54 @@
 
     <div class="row">
       <div class="col">    
+
         <div class="d-flex justify-content-center my-2 wrap">
-          <div v-for="tag in tags" :key="tag" class="oval-label mx-2">
-            <span class="label-text">{{ tag.name }}</span>
+          <div v-for="tag in tags" :key="tag" >
+            <div class="oval-label name-hover mx-2" data-bs-toggle="dropdown">
+              <span class="label-text">{{ tag.name }}</span>
+            </div>
+            <ul class="dropdown-menu">
+              <li @click="showTagDeleteForm(tag)" class="dropdown-item" style="cursor: pointer;">계획표의 태그 삭제</li>
+            </ul>
           </div>
-        </div> 
+        </div>
+        
+        <div v-if="this.isShowTagDeleteForm" class="border px-1 py-1 my-2" style="background-color: white;">
+          <form @submit.prevent="deleteDailyTag()">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label fw-bold" style="color: black">계획표에 태그를 삭제할까요?</label>
+              <button @click="this.isShowTagDeleteForm = !this.isShowTagDeleteForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="text-center">
+              <button type="submit" class="btn btn-secondary form-btn">확인</button>
+            </div>
+          </form>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
 
         <div class="d-flex justify-content-center">
-          <button @click="showTaskForm" class="btn px-1">
-            <i class="bi bi-plus-circle-dotted fs-4" style="color: white;"></i>
+          <button @click="isShowTagAddForm = !isShowTagAddForm" class="btn px-1">
+            <i class="bi bi-plus-circle-dotted fs-5" style="color: rgb(229, 214, 214);"></i>
           </button>  
         </div>
+
+        <div v-if="isShowTagAddForm" class="border px-1 py-1 my-2" style="background-color: white;">
+          <form @submit.prevent="addTagToSchedule()">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label fw-bold" style="color: black;">계획표에 태그 추가</label>
+              <button  @click="isShowTagAddForm = !isShowTagAddForm;" type="button" class="btn-close"></button>
+            </div>
+            <div class="input-group mb-1">
+              <select @change="selectedTag = $event.target.value" class="form-select">
+                <option v-for="(tag, index) in tagMap" :key="index" class="form-control">{{ tag[0] }}</option>
+              </select>
+              <button type="submit" class="btn btn-secondary form-btn">추가</button>
+            </div>
+          </form>
+          <AlertWarning @turnOff="isDailyTagDuplicatedAlert = $event" message="계획표에 태그가 중복되었습니다." :isVisible="isDailyTagDuplicatedAlert"/>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+        
       </div>
     </div>
 
@@ -147,7 +184,7 @@
         <Tasks @addTask="addTask" @deleteTask="deleteTask" @addSubTask="addSubTask" :dailyScheduleId="id" :date="getFormattedDate()" :items="items"/>
       </div>
       <div class="col-md-6 my-3">
-        <TimeTable :date="getFormattedDate()" :tasks="tasks" :subTasks="subTasks"/>
+        <TimeTable :date="getFormattedDate()" :dailyScheduleId="id" :tasks="tasks" :subTasks="subTasks"/>
       </div>
     </div>
   </div>
@@ -160,7 +197,7 @@
       <div class="col-md-8 my-3">
         <div class="card">
           <div class="card-header d-flex align-items-center justify-content-between">
-            <h4 @click="isShowReviewForm = !isShowReviewForm" class="name-hover" style="cursor: pointer;">Review</h4>
+            <h4 @click="isShowReviewForm = !isShowReviewForm" class="name-hover">Review</h4>
             <div @click="isShowEmojiForm = !isShowEmojiForm" style="cursor: pointer;">{{ emojiMap.get(emoji) }}</div>
           </div>
           <div class="card-body">
@@ -231,7 +268,8 @@ import AlertServerError from "@/components/basic/AlertServerError.vue";
 import { 
   getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
   saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi,
-  changeEmojiAndReviewApi} from '@/api/schedule.js';
+  changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi
+} from '@/api/schedule.js';
 
 export default {
   name: 'Schedule',
@@ -258,13 +296,14 @@ export default {
       newReview: '',
 
       selectedEmoji: undefined,
+      selectedTag: null,
+      selectedDailyTag: null,
 
       items: [],
       tasks: new Map(),
       subTasks: new Map(),
       tags: [],
       reviewCycles: [],
-      emojiMap: new Map(),
 
       newReviewCycleName: '',
       cycleNumbers: new Set(),
@@ -274,11 +313,23 @@ export default {
       isShowReviewCycleForm: false,
       isShowEmojiForm: false,
       isShowReviewForm: false,
+      isShowTagAddForm: false,
+      isShowTagDeleteForm: false,
 
       isServerErrorAlert: false,
       isNotValidNumberAlert: false,
       isNotValidReviewCycleAlert: false,
+      isDailyTagDuplicatedAlert: false,
     };
+  },
+  computed: {
+    tagMap() {
+      return this.$store.state.tags.tags;
+    },
+
+    emojiMap() {
+      return this.$store.state.emojis.emojis;
+    }
   },
   methods: {
     prevDay() {
@@ -358,6 +409,11 @@ export default {
       this.reviewCycles.forEach(reviewCycle => reviewCycle.showReviewCycleDeleteForm = false);
     },
 
+    showTagDeleteForm(tag) {
+      this.selectedDailyTag = tag.name;
+      this.isShowTagDeleteForm = !this.isShowTagDeleteForm;
+    },
+
     addNumber() {
       if (!Number.isInteger(this.newCycleNumber) || this.newCycleNumber <= 0 || this.newCycleNumber > 60) {
         this.isNotValidNumberAlert = true;
@@ -403,7 +459,6 @@ export default {
       this.review = data.review;
       this.initializeItems(data.taskQueryResponses);
       this.initializeTasksAndSubTasks();
-      this.initializeEmojiMap();
     },
 
     initializeItems(taskResponses) {
@@ -451,12 +506,6 @@ export default {
         subItems.push(...item.subTaskQueryResponses)
       });
       this.subTasks = new Map(subItems.map(subTask => [subTask.id, subTask.name]));
-    },
-
-    initializeEmojiMap() {
-      this.emojiMap.set('GOOD', '😁');
-      this.emojiMap.set('NOT_BAD', '🙂');
-      this.emojiMap.set('BAD', '😟');
     },
 
     handleFetchError(error, date) {
@@ -514,6 +563,43 @@ export default {
           showReviewCyclePeriodForm: false,
           showReviewCycleDeleteForm: false,
       };
+    },
+
+    async addTagToSchedule() {
+      if (!this.selectedTag) {
+        this.selectedTag = this.tagMap.keys().next().value;
+      }
+      try {
+        const response = await addTagToScheduleApi( {
+          dailyTagListId: this.id,
+          tagId: this.tagMap.get(this.selectedTag),
+        });
+        this.tags.push({
+          id: response.data.tagId,
+          name: this.selectedTag
+        });
+        this.selectedTag = null;
+        this.isShowTagAddForm = false;
+      } catch (error) {
+        if (error.response && error.response.data.message === '계획표에 태그가 중복되었습니다.') {
+          this.isDailyTagDuplicatedAlert = true;
+          return;
+        }
+        this.handleServerError(error);
+      }
+    },
+
+    async deleteDailyTag() {
+      try {
+        await deleteTagToScheduleApi( {
+          dailyTagListId: this.id,
+          tagId: this.tagMap.get(this.selectedDailyTag),
+        });
+        this.tags = this.tags.filter(tag => tag.id !== this.tagMap.get(this.selectedDailyTag));
+        this.isShowTagDeleteForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+      }
     },
 
     async addReviewCycle() {
@@ -600,7 +686,7 @@ export default {
         return;
       }
     },
-
+    
     async changeReview() {
       try {
         const response = await changeEmojiAndReviewApi( {
@@ -641,11 +727,6 @@ export default {
   border-radius: 10px;
 }
 
-.name-hover:hover {
-    color: #aeac8d; 
-    transition: background-color 0.3s; 
-}
-
 @media screen and (max-width: 700px) {
   .btn {
     font-size: 2vw;
@@ -664,11 +745,11 @@ export default {
   }
 
   .form-label {
-    font-size: 2.0vw;
+    font-size: 3.0vw;
   }
 
   .form-control {
-    font-size: 1.75vw;
+    font-size: 2.75vw;
   }
 
   .form-btn {
@@ -688,6 +769,10 @@ export default {
   .form-btn {
     font-size: 1.25vw;
     padding: 2px 4px;
+  }
+
+  .form-select {
+    font-size: 2.75vw;
   }
 }
 </style>
