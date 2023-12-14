@@ -52,9 +52,13 @@ function addTagToScheduleApi(dto) {
 function deleteTagToScheduleApi(dto) {
     return api.delete(`/dailyschedule/daily-tag-lists/${dto.dailyTagListId}/tags/${dto.tagId}`);
 }
+
+function changeMainTagApi(dto) {
+    return api.patch(`/dailyschedule/daily-tag-lists/${dto.dailyTagListId}/tags/${dto.tagId}`);
+}
   
 export { 
     getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
     saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi,
-    changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi
+    changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi, changeMainTagApi
 };

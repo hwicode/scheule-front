@@ -16,9 +16,25 @@
           <span class="mx-2 d-inline-block">총 공부 시간 : {{ Math.floor(totalLearningTime / 60) }}시간 {{ totalLearningTime % 60 }}분</span>
           <span class="mx-2 d-inline-block">총 점수 : {{ totalScore }}</span>
           <span class="mx-2 d-inline-block">성취도 : {{ achievement }}%</span>
-          <span class="mx-2 d-inline-block">메인 태그 : {{ mainTag }}</span>
+          <span @click="this.isShowMainTagForm = !this.isShowMainTagForm" class="mx-2 d-inline-block name-hover">메인 태그 : {{ mainTag }}</span>
         </div>
       </div>
+    </div>
+
+    <div v-if="isShowMainTagForm" class="border px-1 py-1 my-2" style="background-color: white;">
+      <form @submit.prevent="changeMainTag()">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <label class="form-label fw-bold" style="color: black;">계획표에 메인 태그 변경</label>
+          <button  @click="isShowMainTagForm = !isShowMainTagForm;" type="button" class="btn-close"></button>
+        </div>
+        <div class="input-group mb-1">
+          <select @change="selectedMainTag = $event.target.value" class="form-select">
+            <option v-for="(tag, index) in tags" :key="index" class="form-control">{{ tag.name }}</option>
+          </select>
+          <button type="submit" class="btn btn-secondary form-btn">확인</button>
+        </div>
+      </form>
+      <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
     </div>
 
     <div class="row">
@@ -268,7 +284,7 @@ import AlertServerError from "@/components/basic/AlertServerError.vue";
 import { 
   getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
   saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi,
-  changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi
+  changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi, changeMainTagApi
 } from '@/api/schedule.js';
 
 export default {
@@ -298,6 +314,7 @@ export default {
       selectedEmoji: undefined,
       selectedTag: null,
       selectedDailyTag: null,
+      selectedMainTag: null,
 
       items: [],
       tasks: new Map(),
@@ -315,6 +332,7 @@ export default {
       isShowReviewForm: false,
       isShowTagAddForm: false,
       isShowTagDeleteForm: false,
+      isShowMainTagForm: false,
 
       isServerErrorAlert: false,
       isNotValidNumberAlert: false,
@@ -597,6 +615,23 @@ export default {
         });
         this.tags = this.tags.filter(tag => tag.id !== this.tagMap.get(this.selectedDailyTag));
         this.isShowTagDeleteForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+      }
+    },
+
+    async changeMainTag() {
+      if (!this.selectedMainTag) {
+        this.selectedMainTag = this.tags[0].name;
+      }
+      try {
+        const response = await changeMainTagApi( {
+          dailyTagListId: this.id,
+          tagId: this.tags.find(tag => tag.name === this.selectedMainTag).id,
+        });
+        this.mainTag = response.data.mainTagName;
+        this.selectedMainTag = null;
+        this.isShowMainTagForm = false;
       } catch (error) {
         this.handleServerError(error);
       }
