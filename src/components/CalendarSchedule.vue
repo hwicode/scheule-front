@@ -16,7 +16,7 @@
                   <div :class="dayClasses(index)" class="day">
                     {{ day.day }}
                   </div>
-                  <div v-if="day.schedule">{{ day.schedule.emoji }}</div>
+                  <div v-if="day.schedule">{{ emojiMap.get(day.schedule.emoji) }}</div>
                 </div>
                 <div class="content">
                   <div v-if="day.schedule">총 점수 : {{ day.schedule.totalDifficultyScore }}</div>
@@ -80,6 +80,9 @@
         }
   
         return calendar;
+      },
+      emojiMap() {
+        return this.$store.state.emojis.emojis;
       },
     },
     watch: {
