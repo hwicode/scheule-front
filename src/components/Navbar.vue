@@ -59,8 +59,8 @@ export default {
     };
   },
   computed: {
-    tags() {
-      return this.$store.state.tags.tags;
+    tagsMap() {
+      return this.$store.state.tags.tagsMap;
     },
   },
   methods: {
@@ -78,7 +78,7 @@ export default {
     },
 
     search() {
-      const tagId = this.tags.get(this.tagInput);
+      const tagId = this.tagsMap.get(this.tagInput);
       
       this.$router.push({
         path: '/search',

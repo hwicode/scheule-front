@@ -78,7 +78,7 @@
             </div>
             <div class="input-group mb-1">
               <select @change="selectedTag = $event.target.value" class="form-select">
-                <option v-for="(tag, index) in tagMap" :key="index" class="form-control">{{ tag[0] }}</option>
+                <option v-for="(tag, index) in allTags" :key="index" class="form-control">{{ tag.name }}</option>
               </select>
               <button type="submit" class="btn btn-secondary form-btn">추가</button>
             </div>
@@ -102,21 +102,21 @@
 
     <div v-if="isShowAllTags" class="d-flex justify-content-end my-3">
       <div class="list-group" style="width: 30%;">
-        <div v-for="(tag, index) in tagMap" :key="index">
+        <div v-for="(tag, index) in allTags" :key="index">
 
           <button type="button" data-bs-toggle="dropdown" class="list-group-item list-group-item-action">
-            <div>{{ tag[0] }}</div>
+            <div>{{ tag.name }}</div>
           </button>
           <ul class="dropdown-menu">
-            <li @click="showTagChangeForm(tag[1])" class="dropdown-item" style="cursor: pointer;">태그 이름 변경</li>
-            <li @click="showTagDeleteForm(tag[1])" class="dropdown-item" style="cursor: pointer;">태그 삭제</li>
+            <li @click="showTagChangeForm(tag)" class="dropdown-item" style="cursor: pointer;">태그 이름 변경</li>
+            <li @click="showTagDeleteForm(tag)" class="dropdown-item" style="cursor: pointer;">태그 삭제</li>
           </ul>
           
-          <div v-if="tagMap.get(tag[0]).showTagChangeForm" class="border px-1 py-1">
-            <form @submit.prevent="changeTagName(tag[1])">
+          <div v-if="tag.showTagChangeForm" class="border px-1 py-1">
+            <form @submit.prevent="changeTagName(tag)">
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <label class="form-label">태그 이름 변경</label>
-                <button @click="closeTagChangeForm(tag[1])" type="button" class="btn-close"></button>
+                <button @click="closeTagChangeForm(tag)" type="button" class="btn-close"></button>
               </div>
               <div class="input-group">
                 <input v-model="newTagName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
@@ -127,11 +127,11 @@
             <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
           </div>
 
-          <div v-if="tagMap.get(tag[0]).showTagDeleteForm" class="border px-1 py-1">
-            <form @submit.prevent="deleteTag(tag[1])">
+          <div v-if="tag.showTagDeleteForm" class="border px-1 py-1">
+            <form @submit.prevent="deleteTag(tag)">
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <label class="form-label">태그 삭제</label>
-                <button @click="closeTagDeleteForm(tag[1])" type="button" class="btn-close"></button>
+                <button @click="closeTagDeleteForm(tag)" type="button" class="btn-close"></button>
               </div>
               <div class="text-center">
                 <button type="submit" class="btn btn-secondary form-btn">삭제</button>
@@ -412,8 +412,12 @@ export default {
     };
   },
   computed: {
-    tagMap() {
+    allTags() {
       return this.$store.state.tags.tags;
+    },
+
+    tagsMap() {
+      return this.$store.state.tags.tagsMap;
     },
 
     emojiMap() {
@@ -674,12 +678,12 @@ export default {
 
     async addTagToSchedule() {
       if (!this.selectedTag) {
-        this.selectedTag = this.tagMap.keys().next().value;
+        this.selectedTag = this.allTags[0].name;
       }
       try {
         const response = await addTagToScheduleApi( {
           dailyTagListId: this.id,
-          tagId: this.tagMap.get(this.selectedTag).id,
+          tagId: this.tagsMap.get(this.selectedTag).id,
         });
         this.tags.push({
           id: response.data.tagId,
@@ -700,9 +704,9 @@ export default {
       try {
         await deleteTagToScheduleApi( {
           dailyTagListId: this.id,
-          tagId: this.tagMap.get(this.selectedDailyTag).id,
+          tagId: this.tagsMap.get(this.selectedDailyTag).id,
         });
-        this.tags = this.tags.filter(tag => tag.id !== this.tagMap.get(this.selectedDailyTag).id);
+        this.tags = this.tags.filter(tag => tag.id !== this.tagsMap.get(this.selectedDailyTag).id);
         this.isShowDailyTagDeleteForm = false;
       } catch (error) {
         this.handleServerError(error);
@@ -756,6 +760,7 @@ export default {
             newTagName: this.newTagName,
           } 
         );
+        this.tags.find(item => item.name === tag.name).name = this.newTagName;
         this.$store.commit('tags/changeTagName', { tag: tag, newTagName: this.newTagName });
         this.closeTagChangeForm(tag);
       } catch (error) {
@@ -771,6 +776,7 @@ export default {
       try {
         await deleteTagApi(tag.id);
         this.tags = this.tags.filter(item => item.id !== tag.id);
+        this.$store.commit('tags/deleteTag', tag);
         this.closeTagDeleteForm(tag);
       } catch (error) {
         if (error.response && error.response.data.message === '태그가 중복되었습니다.') {
