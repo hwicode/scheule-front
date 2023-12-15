@@ -56,9 +56,26 @@ function deleteTagToScheduleApi(dto) {
 function changeMainTagApi(dto) {
     return api.patch(`/dailyschedule/daily-tag-lists/${dto.dailyTagListId}/tags/${dto.tagId}`);
 }
+
+function saveTagApi(dto) {
+    return api.post(`/dailyschedule/tags`, {
+        tagName: dto.tagName
+    });
+}
+
+function changeTagNameApi(dto) {
+    return api.patch(`/dailyschedule/tags/${dto.tagId}`, {
+        newTagName: dto.newTagName
+    });
+}
+
+function deleteTagApi(tagId) {
+    return api.delete(`/dailyschedule/tags/${tagId}`);
+}
   
 export { 
     getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
     saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi,
-    changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi, changeMainTagApi
+    changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi, changeMainTagApi,
+    saveTagApi, changeTagNameApi, deleteTagApi
 };

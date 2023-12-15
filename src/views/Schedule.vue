@@ -46,16 +46,16 @@
               <span class="label-text">{{ tag.name }}</span>
             </div>
             <ul class="dropdown-menu">
-              <li @click="showTagDeleteForm(tag)" class="dropdown-item" style="cursor: pointer;">계획표의 태그 삭제</li>
+              <li @click="showDailyTagDeleteForm(tag)" class="dropdown-item" style="cursor: pointer;">계획표의 태그 삭제</li>
             </ul>
           </div>
         </div>
         
-        <div v-if="this.isShowTagDeleteForm" class="border px-1 py-1 my-2" style="background-color: white;">
+        <div v-if="this.isShowDailyTagDeleteForm" class="border px-1 py-1 my-2" style="background-color: white;">
           <form @submit.prevent="deleteDailyTag()">
             <div class="d-flex align-items-center justify-content-between mb-2">
               <label class="form-label fw-bold" style="color: black">계획표에 태그를 삭제할까요?</label>
-              <button @click="this.isShowTagDeleteForm = !this.isShowTagDeleteForm;" type="button" class="btn-close"></button>
+              <button @click="this.isShowDailyTagDeleteForm = !this.isShowDailyTagDeleteForm;" type="button" class="btn-close"></button>
             </div>
             <div class="text-center">
               <button type="submit" class="btn btn-secondary form-btn">확인</button>
@@ -65,16 +65,16 @@
         </div>
 
         <div class="d-flex justify-content-center">
-          <button @click="isShowTagAddForm = !isShowTagAddForm" class="btn px-1">
+          <button @click="isShowDailyTagAddForm = !isShowDailyTagAddForm" class="btn px-1">
             <i class="bi bi-plus-circle-dotted fs-5" style="color: rgb(229, 214, 214);"></i>
           </button>  
         </div>
 
-        <div v-if="isShowTagAddForm" class="border px-1 py-1 my-2" style="background-color: white;">
+        <div v-if="isShowDailyTagAddForm" class="border px-1 py-1 my-2" style="background-color: white;">
           <form @submit.prevent="addTagToSchedule()">
             <div class="d-flex align-items-center justify-content-between mb-2">
               <label class="form-label fw-bold" style="color: black;">계획표에 태그 추가</label>
-              <button  @click="isShowTagAddForm = !isShowTagAddForm;" type="button" class="btn-close"></button>
+              <button  @click="isShowDailyTagAddForm = !isShowDailyTagAddForm;" type="button" class="btn-close"></button>
             </div>
             <div class="input-group mb-1">
               <select @change="selectedTag = $event.target.value" class="form-select">
@@ -95,8 +95,74 @@
   <div class="container">
     <div class="row">
       <div class="d-flex justify-content-end wrap">
-        <button type="button" class="btn btn-outline-primary btn-sm">전체 태그</button>
-        <button @click="showAllReviewCycles()" type="button" class="btn btn-outline-primary btn-sm">전체 복습 주기</button>
+        <button @click="this.isShowAllTags = !this.isShowAllTags" type="button" class="btn btn-outline-primary btn-sm">전체 태그</button>
+        <button @click="this.isShowAllReviewCycles = !this.isShowAllReviewCycles" type="button" class="btn btn-outline-primary btn-sm">전체 복습 주기</button>
+      </div>
+    </div>
+
+    <div v-if="isShowAllTags" class="d-flex justify-content-end my-3">
+      <div class="list-group" style="width: 30%;">
+        <div v-for="(tag, index) in tagMap" :key="index">
+
+          <button type="button" data-bs-toggle="dropdown" class="list-group-item list-group-item-action">
+            <div>{{ tag[0] }}</div>
+          </button>
+          <ul class="dropdown-menu">
+            <li @click="showTagChangeForm(tag[1])" class="dropdown-item" style="cursor: pointer;">태그 이름 변경</li>
+            <li @click="showTagDeleteForm(tag[1])" class="dropdown-item" style="cursor: pointer;">태그 삭제</li>
+          </ul>
+          
+          <div v-if="tagMap.get(tag[0]).showTagChangeForm" class="border px-1 py-1">
+            <form @submit.prevent="changeTagName(tag[1])">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label">태그 이름 변경</label>
+                <button @click="closeTagChangeForm(tag[1])" type="button" class="btn-close"></button>
+              </div>
+              <div class="input-group">
+                <input v-model="newTagName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
+                <button type="submit" class="btn btn-secondary form-btn">변경</button>
+              </div>
+            </form>
+            <AlertWarning @turnOff="isTagDuplicatedAlert = $event" message="태그의 이름이 중복되었습니다" :isVisible="isTagDuplicatedAlert"/>
+            <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+          </div>
+
+          <div v-if="tagMap.get(tag[0]).showTagDeleteForm" class="border px-1 py-1">
+            <form @submit.prevent="deleteTag(tag[1])">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label">태그 삭제</label>
+                <button @click="closeTagDeleteForm(tag[1])" type="button" class="btn-close"></button>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-secondary form-btn">삭제</button>
+              </div>
+            </form>
+            <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+          </div>
+        </div>
+
+        <button @click="showTagCreateForm()" type="button" class="list-group-item list-group-item-action d-flex">
+            <i class="bi bi-plus-circle-dotted"></i>
+            <div class="mx-1">태그 추가</div>
+        </button>
+
+        <div v-if="isShowTagForm" class="border px-2 py-2">
+          <form @submit.prevent="addTag">
+            <div class="mb-4">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <label class="form-label fw-bold">태그 이름</label>
+                <button @click="isShowTagForm = !isShowTagForm;" type="button" class="btn-close"></button>
+              </div>
+              <input v-model="newTagName" type="text" class="form-control" placeholder="새로운 태그의 이름을 입력하세요" required>
+            </div>
+            <div class="text-center">
+              <button type="submit" class="btn btn-primary form-btn">저장</button>
+            </div>
+          </form>
+          <AlertWarning @turnOff="isTagDuplicatedAlert = $event" message="태그의 이름이 중복되었습니다" :isVisible="isTagDuplicatedAlert"/>
+          <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+        </div>
+
       </div>
     </div>
 
@@ -284,7 +350,8 @@ import AlertServerError from "@/components/basic/AlertServerError.vue";
 import { 
   getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
   saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi,
-  changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi, changeMainTagApi
+  changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi, changeMainTagApi,
+  saveTagApi, changeTagNameApi, deleteTagApi
 } from '@/api/schedule.js';
 
 export default {
@@ -325,19 +392,23 @@ export default {
       newReviewCycleName: '',
       cycleNumbers: new Set(),
       newCycleNumber: 0,
+      newTagName: '',
 
       isShowAllReviewCycles: false,
       isShowReviewCycleForm: false,
       isShowEmojiForm: false,
       isShowReviewForm: false,
-      isShowTagAddForm: false,
-      isShowTagDeleteForm: false,
+      isShowDailyTagAddForm: false,
+      isShowDailyTagDeleteForm: false,
       isShowMainTagForm: false,
+      isShowAllTags: false,
+      isShowTagForm: false,
 
       isServerErrorAlert: false,
       isNotValidNumberAlert: false,
       isNotValidReviewCycleAlert: false,
       isDailyTagDuplicatedAlert: false,
+      isTagDuplicatedAlert: false,
     };
   },
   computed: {
@@ -388,8 +459,26 @@ export default {
       return true;
     },
 
-    showAllReviewCycles() {
-      this.isShowAllReviewCycles = !this.isShowAllReviewCycles;
+    showTagCreateForm() {
+      this.isShowTagForm = !this.isShowTagForm;
+      this.newTagName = '';
+    },
+
+    showTagChangeForm(tag) {
+      this.$store.commit('tags/showTagChangeForm', tag);
+      this.newTagName = '';
+    },
+
+    showTagDeleteForm(tag) {
+      this.$store.commit('tags/showTagDeleteForm', tag);
+    },
+
+    closeTagChangeForm(tag) {
+      this.$store.commit('tags/closeTagChangeForm', tag);
+    },
+
+    closeTagDeleteForm(tag) {
+      this.$store.commit('tags/closeTagDeleteForm', tag);
     },
 
     showReviewCycleCreateForm() {
@@ -427,9 +516,9 @@ export default {
       this.reviewCycles.forEach(reviewCycle => reviewCycle.showReviewCycleDeleteForm = false);
     },
 
-    showTagDeleteForm(tag) {
+    showDailyTagDeleteForm(tag) {
       this.selectedDailyTag = tag.name;
-      this.isShowTagDeleteForm = !this.isShowTagDeleteForm;
+      this.isShowDailyTagDeleteForm = !this.isShowDailyTagDeleteForm;
     },
 
     addNumber() {
@@ -590,14 +679,14 @@ export default {
       try {
         const response = await addTagToScheduleApi( {
           dailyTagListId: this.id,
-          tagId: this.tagMap.get(this.selectedTag),
+          tagId: this.tagMap.get(this.selectedTag).id,
         });
         this.tags.push({
           id: response.data.tagId,
           name: this.selectedTag
         });
         this.selectedTag = null;
-        this.isShowTagAddForm = false;
+        this.isShowDailyTagAddForm = false;
       } catch (error) {
         if (error.response && error.response.data.message === '계획표에 태그가 중복되었습니다.') {
           this.isDailyTagDuplicatedAlert = true;
@@ -611,10 +700,10 @@ export default {
       try {
         await deleteTagToScheduleApi( {
           dailyTagListId: this.id,
-          tagId: this.tagMap.get(this.selectedDailyTag),
+          tagId: this.tagMap.get(this.selectedDailyTag).id,
         });
-        this.tags = this.tags.filter(tag => tag.id !== this.tagMap.get(this.selectedDailyTag));
-        this.isShowTagDeleteForm = false;
+        this.tags = this.tags.filter(tag => tag.id !== this.tagMap.get(this.selectedDailyTag).id);
+        this.isShowDailyTagDeleteForm = false;
       } catch (error) {
         this.handleServerError(error);
       }
@@ -633,6 +722,61 @@ export default {
         this.selectedMainTag = null;
         this.isShowMainTagForm = false;
       } catch (error) {
+        this.handleServerError(error);
+      }
+    },
+
+    async addTag() {
+      try {
+        const response = await saveTagApi( 
+          {
+            tagName: this.newTagName,
+          } 
+        );
+        const newTag = {
+          id: response.data.tagId,
+          name: response.data.tagName,
+        }
+        this.$store.commit('tags/addTag', newTag);
+        this.isShowTagForm = false;
+      } catch (error) {
+        if (error.response && error.response.data.message === '태그가 중복되었습니다.') {
+          this.isTagDuplicatedAlert = true;
+          return;
+        }
+        this.handleServerError(error);
+      }
+    },
+    
+    async changeTagName(tag) {
+      try {
+        await changeTagNameApi( 
+          {
+            tagId: tag.id,
+            newTagName: this.newTagName,
+          } 
+        );
+        this.$store.commit('tags/changeTagName', { tag: tag, newTagName: this.newTagName });
+        this.closeTagChangeForm(tag);
+      } catch (error) {
+        if (error.response && error.response.data.message === '태그가 중복되었습니다.') {
+          this.isTagDuplicatedAlert = true;
+          return;
+        }
+        this.handleServerError(error);
+      }
+    },
+
+    async deleteTag(tag) {
+      try {
+        await deleteTagApi(tag.id);
+        this.tags = this.tags.filter(item => item.id !== tag.id);
+        this.closeTagDeleteForm(tag);
+      } catch (error) {
+        if (error.response && error.response.data.message === '태그가 중복되었습니다.') {
+          this.isTagDuplicatedAlert = true;
+          return;
+        }
         this.handleServerError(error);
       }
     },
