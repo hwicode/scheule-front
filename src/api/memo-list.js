@@ -19,5 +19,24 @@ function saveMemoWithTagsApi(dto) {
         tagIds: dto.tagIds
     });
 }
-  
-export { getMemos, saveMemoApi, saveMemoWithTagsApi };
+
+function changeMemoTextApi(dto) {
+    return api.patch(`/dailyschedule/memos/${dto.memoId}`, {
+        newText: dto.newText
+    });
+}
+
+function addTagsToMemoApi(dto) {
+    return api.post(`/dailyschedule/memos/${dto.memoId}/tags`, {
+        tagIds: dto.tagIds
+    });
+}
+
+function deleteMemoApi(memoId) {
+    return api.delete(`/dailyschedule/memos/${memoId}`);
+}
+
+export { 
+    getMemos, saveMemoApi, saveMemoWithTagsApi, changeMemoTextApi,
+    addTagsToMemoApi, deleteMemoApi 
+};
