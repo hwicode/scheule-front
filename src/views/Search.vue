@@ -82,7 +82,10 @@ export default {
 
     async fetchFirstSchedules(tagId) {
       try {
-        if (tagId === undefined) return;
+        if (tagId === undefined) {
+          this.showButton = false;
+          return;
+        }
         const response = await getFirstSchedules({ tagId });
         this.items.push(...response.data);
       } catch (error) {
@@ -103,7 +106,10 @@ export default {
 
     async fetchFirstMemos(tagId) {
       try {
-        if (tagId === undefined) return;
+        if (tagId === undefined) {
+          this.showButton = false;
+          return;
+        }
         const response = await getFirstMemos({ tagId });
         this.items.push(...response.data);
       } catch (error) {

@@ -78,7 +78,7 @@ export default {
     },
 
     search() {
-      const tagId = this.tagsMap.get(this.tagInput);
+      const tagId = this.tagsMap.get(this.tagInput) === undefined ? undefined : this.tagsMap.get(this.tagInput).id;
       
       this.$router.push({
         path: '/search',
