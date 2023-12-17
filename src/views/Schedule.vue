@@ -266,7 +266,7 @@
         <Tasks @addTask="addTask" @deleteTask="deleteTask" @addSubTask="addSubTask" :dailyScheduleId="id" :date="getFormattedDate()" :items="items" :showTodayScheduleButton="showTodayScheduleButton"/>
       </div>
       <div class="col-md-6 my-3">
-        <TimeTable :date="getFormattedDate()" :dailyScheduleId="id" :tasks="tasks" :subTasks="subTasks" :showTodayScheduleButton="showTodayScheduleButton"/>
+        <TimeTable @changeTotalLearningTime="changeTotalLearningTime" :date="getFormattedDate()" :dailyScheduleId="id" :tasks="tasks" :subTasks="subTasks" :showTodayScheduleButton="showTodayScheduleButton"/>
       </div>
     </div>
   </div>
@@ -548,6 +548,10 @@ export default {
       subTask = this.initializeSubTask(subTask);
       task.subTaskQueryResponses.push(subTask);
       this.initializeTasksAndSubTasks();
+    },
+
+    changeTotalLearningTime(totalLearningTime) {
+      this.totalLearningTime = totalLearningTime;
     },
     
     async fetchSchedule() {

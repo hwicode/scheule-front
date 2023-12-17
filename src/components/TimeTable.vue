@@ -350,15 +350,23 @@ export default {
     calculateLearningTime(startTime, endTime) {
       const start = new Date(startTime);
       const end = new Date(endTime);
-      if (end - start < 0) return;
+      if (end - start < 0) return 0;
       return Math.floor((end - start) / (1000 * 60));
     },
 
     formatDuration(minutes) {
-      if (!minutes) return '0h 0m';
+      if (minutes === 0) return '0h 0m';
       const hours = Math.floor(minutes / 60);
       const remainingMinutes = minutes % 60;
       return `${hours}h ${remainingMinutes}m`;
+    },
+
+    calculateTotalLearningTime() {
+      const tatalLearningTime = this.studySessions.reduce((total, studySession) => {
+        console.log(total)
+        return total + this.calculateLearningTime(studySession.startTime, studySession.endTime);
+      }, 0);
+      this.$emit('changeTotalLearningTime', tatalLearningTime);
     },
 
     async addLearningTime() {
@@ -422,6 +430,7 @@ export default {
         studySession.endTime = response.data.endTime;
         studySession.duration = this.makeDuration(studySession.startTime, studySession.endTime);
         studySession.showEndLearningTimeForm = false;
+        this.calculateTotalLearningTime();
       } catch (error) {
         this.handleEndTimeError(error);
       }
@@ -454,6 +463,7 @@ export default {
         studySession.startTime = response.data.newStartTime;
         studySession.duration = this.makeDuration(studySession.startTime, studySession.endTime);
         studySession.showChangeStartTimeForm = false;
+        if (studySession.endTime) this.calculateTotalLearningTime();
       } catch (error) {
         this.handleStartTimeError(error);
       }
@@ -470,6 +480,7 @@ export default {
         studySession.endTime = response.data.endTime;
         studySession.duration = this.makeDuration(studySession.startTime, studySession.endTime);
         studySession.showChangeEndTimeForm = false;
+        this.calculateTotalLearningTime();
       } catch (error) {
         this.handleEndTimeError(error);
       }
@@ -490,6 +501,7 @@ export default {
         });
         this.studySessions = this.studySessions.filter(item => item.id !== studySession.id);
         studySession.showdeleteLearningTimeForm = false;
+        this.calculateTotalLearningTime();
       } catch (error) {
         this.handleServerError(error);
       }
