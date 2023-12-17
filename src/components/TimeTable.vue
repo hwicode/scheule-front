@@ -363,7 +363,6 @@ export default {
 
     calculateTotalLearningTime() {
       const tatalLearningTime = this.studySessions.reduce((total, studySession) => {
-        console.log(total)
         return total + this.calculateLearningTime(studySession.startTime, studySession.endTime);
       }, 0);
       this.$emit('changeTotalLearningTime', tatalLearningTime);
