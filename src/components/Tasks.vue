@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex align-items-center">
       <h4>To Do</h4>
-      <button @click="showTaskForm" class="btn px-1">
+      <button v-if="showTodayScheduleButton()" @click="showTaskForm" class="btn px-1">
         <i class="bi bi-plus fs-4"></i>
       </button>  
     </div>
@@ -432,6 +432,7 @@ export default {
     date: String,
     items: Array,
     reviewCycles: Array,
+    showTodayScheduleButton: Function,
   },
   data() {
     return {
@@ -595,7 +596,7 @@ export default {
           this.isTaskDuplicatedAlert = true;
           return;
       }
-      this.handleServerError();
+      this.handleServerError(error);
     },
 
     async changeName(task) {
@@ -619,7 +620,7 @@ export default {
           this.isTaskDuplicatedAlert = true;
           return;
       }
-      this.handleServerError();
+      this.handleServerError(error);
     },
 
     async deleteTask(task) {
@@ -657,7 +658,7 @@ export default {
           this.isNotAllDoneSubTaskAlert = true;
           return;
       }
-      this.handleServerError();
+      this.handleServerError(error);
     },
 
     async changeTaskPriority(task) {
@@ -756,7 +757,7 @@ export default {
           this.isSubTaskDuplicatedAlert = true;
           return;
       }
-      this.handleServerError();
+      this.handleServerError(error);
     },
 
     async changeSubTaskName(task, subTask) {

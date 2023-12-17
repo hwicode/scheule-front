@@ -4,7 +4,7 @@
         <i class="bi bi-caret-left-fill"></i>
       </button>
       <h2 class="me-4">{{ month }}월 {{ day }}일 {{ year }}년</h2>
-      <button v-if="showScheduleNextButton()" @click="nextDay" class="btn btn-secondary">
+      <button v-if="!showTodayScheduleButton()" @click="nextDay" class="btn btn-secondary">
         <i class="bi bi-caret-right-fill"></i>
       </button>
   </div>
@@ -65,7 +65,7 @@
         </div>
 
         <div class="d-flex justify-content-center">
-          <button @click="isShowDailyTagAddForm = !isShowDailyTagAddForm" class="btn px-1">
+          <button v-if="showTodayScheduleButton()" @click="isShowDailyTagAddForm = !isShowDailyTagAddForm" class="btn px-1">
             <i class="bi bi-plus-circle-dotted fs-5" style="color: rgb(229, 214, 214);"></i>
           </button>  
         </div>
@@ -142,8 +142,8 @@
         </div>
 
         <button @click="showTagCreateForm()" type="button" class="list-group-item list-group-item-action d-flex">
-            <i class="bi bi-plus-circle-dotted"></i>
-            <div class="mx-1">태그 추가</div>
+          <i class="bi bi-plus-circle-dotted"></i>
+          <div class="mx-1">태그 추가</div>
         </button>
 
         <div v-if="isShowTagForm" class="border px-2 py-2">
@@ -263,10 +263,10 @@
   <div class="container">
     <div class="row">
       <div class="col-md-6 my-3">
-        <Tasks @addTask="addTask" @deleteTask="deleteTask" @addSubTask="addSubTask" :dailyScheduleId="id" :date="getFormattedDate()" :items="items"/>
+        <Tasks @addTask="addTask" @deleteTask="deleteTask" @addSubTask="addSubTask" :dailyScheduleId="id" :date="getFormattedDate()" :items="items" :showTodayScheduleButton="showTodayScheduleButton"/>
       </div>
       <div class="col-md-6 my-3">
-        <TimeTable :date="getFormattedDate()" :dailyScheduleId="id" :tasks="tasks" :subTasks="subTasks"/>
+        <TimeTable :date="getFormattedDate()" :dailyScheduleId="id" :tasks="tasks" :subTasks="subTasks" :showTodayScheduleButton="showTodayScheduleButton"/>
       </div>
     </div>
   </div>
@@ -274,7 +274,7 @@
   <div class="container py-4 my-4 end-box">
     <div class="row">
       <div class="col-md-4 my-3">
-        <MemoList :dailyScheduleId="id"/>
+        <MemoList :dailyScheduleId="id" :showTodayScheduleButton="showTodayScheduleButton"/>
       </div>
       <div class="col-md-8 my-3">
         <div class="card">
@@ -380,7 +380,7 @@ export default {
 
       selectedEmoji: undefined,
       selectedTag: null,
-      selectedDailyTag: null,
+      selectedDailyTagId: null,
       selectedMainTag: null,
 
       items: [],
@@ -456,11 +456,11 @@ export default {
       });
     },
 
-    showScheduleNextButton() {
+    showTodayScheduleButton() {
       if (this.year === new Date().getFullYear() && this.month === new Date().getMonth() + 1 && this.day === new Date().getDate()) {
-        return false;
+        return true;
       }
-      return true;
+      return false;
     },
 
     showTagCreateForm() {
@@ -521,7 +521,7 @@ export default {
     },
 
     showDailyTagDeleteForm(tag) {
-      this.selectedDailyTag = tag.name;
+      this.selectedDailyTagId = tag.id;
       this.isShowDailyTagDeleteForm = !this.isShowDailyTagDeleteForm;
     },
 
@@ -629,12 +629,8 @@ export default {
     async provideSchedule (date) {
       if (this.year === new Date().getFullYear() && this.month === new Date().getMonth() + 1 && this.day === new Date().getDate()) {
         await saveSchedule(date);
-        this.$router.push({
-          path: '/schedule',
-          query: {
-            date: this.getFormattedDate(date),
-          },
-        });
+        this.fetchSchedule();
+        this.fetchReviewCycles();
       }
     },
 
@@ -704,9 +700,9 @@ export default {
       try {
         await deleteTagToScheduleApi( {
           dailyTagListId: this.id,
-          tagId: this.tagsMap.get(this.selectedDailyTag).id,
+          tagId: this.selectedDailyTagId,
         });
-        this.tags = this.tags.filter(tag => tag.id !== this.tagsMap.get(this.selectedDailyTag).id);
+        this.tags = this.tags.filter(tag => tag.id !== this.selectedDailyTagId);
         this.isShowDailyTagDeleteForm = false;
       } catch (error) {
         this.handleServerError(error);

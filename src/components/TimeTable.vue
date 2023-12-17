@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex align-items-center">
       <h4>Study Time Table</h4>
-      <button @click="showLearningTimeForm = !showLearningTimeForm" class="btn px-1">
+      <button v-if="showTodayScheduleButton()" @click="showLearningTimeForm = !showLearningTimeForm" class="btn px-1">
         <i class="bi bi-plus fs-4"></i>
       </button>  
     </div>
@@ -198,6 +198,7 @@ export default {
     dailyScheduleId: Number,
     tasks: Map,
     subTasks: Map,
+    showTodayScheduleButton: Function,
   },
   data() {
     return {

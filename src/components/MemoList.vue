@@ -110,7 +110,7 @@
     <div class="card-header d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center">
         <h4 class="h4-responsive">Memo List</h4>
-        <button @click="showMemoForm" class="btn px-1">
+        <button v-if="showTodayScheduleButton()" @click="showMemoForm" class="btn px-1">
           <i class="bi bi-plus fs-4"></i>
         </button>  
       </div>
@@ -178,6 +178,7 @@ export default {
   },
   props: {
     dailyScheduleId: Number,
+    showTodayScheduleButton: Function,
   },
   data() {
     return {
