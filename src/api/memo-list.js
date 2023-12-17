@@ -36,7 +36,11 @@ function deleteMemoApi(memoId) {
     return api.delete(`/dailyschedule/memos/${memoId}`);
 }
 
+function deleteTagToMemoApi(dto) {
+    return api.delete(`/dailyschedule/memos/${dto.memoId}/tags/${dto.tagId}`);
+}
+
 export { 
     getMemos, saveMemoApi, saveMemoWithTagsApi, changeMemoTextApi,
-    addTagsToMemoApi, deleteMemoApi 
+    addTagsToMemoApi, deleteMemoApi, deleteTagToMemoApi
 };

@@ -19,6 +19,30 @@
                 <li @click="showMemoDeleteForm(memo)" class="dropdown-item" style="cursor: pointer;">메모 삭제</li>
               </ul>
 
+              <div class="d-flex justify-content-center my-2 wrap">
+                <div v-for="memoTag in memo.memoTagQueryResponses" :key="memoTag" >
+                  <div class="oval-label name-hover mx-2" data-bs-toggle="dropdown">
+                    <span class="label-text">{{ memoTag.tagName }}</span>
+                  </div>
+                  <ul class="dropdown-menu">
+                    <li @click="showMemoTagDeleteForm(memo, memoTag)" class="dropdown-item" style="cursor: pointer;">메모의 태그 삭제</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div v-if="memo.showMemoTagDeleteForm" class="border px-1 py-1 my-2" style="background-color: white;">
+                <form @submit.prevent="deleteMemoTag(memo)">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <label class="form-label fw-bold" style="color: black">'{{ this.selectedMemoTag.tagName }}' 태그를 삭제할까요?</label>
+                    <button @click="memo.showMemoTagDeleteForm = !memo.showMemoTagDeleteForm;" type="button" class="btn-close"></button>
+                  </div>
+                  <div class="text-center">
+                    <button type="submit" class="btn btn-secondary form-btn">확인</button>
+                  </div>
+                </form>
+                <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
+              </div>
+
               <div v-if="memo.showMemoChangeForm" class="border px-1 py-1 my-2">
                 <form @submit.prevent="changeMemoText(memo)">
                   <div class="d-flex align-items-center justify-content-between mb-2">
@@ -40,7 +64,7 @@
                     <button @click="memo.showMemoAddTagsForm = !memo.showMemoAddTagsForm;" type="button" class="btn-close"></button>
                   </div>
 
-                  <div class=" mb-1">
+                  <div class=" mb-3">
                     <label class="form-label fw-bold">태그 : {{ this.tags }}</label>
                     <div class="input-group">
                       <select @change="this.selectedTag = $event.target.value" class="form-select">
@@ -53,6 +77,9 @@
                     <button type="submit" class="btn btn-secondary form-btn">확인</button>
                   </div>
                 </form>
+                <AlertWarning @turnOff="isNotFoundTagsAlert = $event" message="추가할 태그가 존재하지 않습니다." :isVisible="isNotFoundTagsAlert"/>
+                <AlertWarning @turnOff="isTagDuplicatedAlert = $event" message="메모에 태그가 중복되었습니다." :isVisible="isTagDuplicatedAlert"/>
+                <AlertWarning @turnOff="isNotValidNumberOfTagsAlert = $event" message="메모에 한 번에 추가할 수 있는 최대 태그의 수는 10개입니다." :isVisible="isNotValidNumberOfTagsAlert"/>
                 <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
               </div>
 
@@ -120,6 +147,7 @@
             <button type="submit" class="btn btn-secondary form-btn">확인</button>
           </div>
         </form>
+        <AlertWarning @turnOff="isNotFoundTagsAlert = $event" message="추가할 태그가 존재하지 않습니다." :isVisible="isNotFoundTagsAlert"/>
         <AlertWarning @turnOff="isTagDuplicatedAlert = $event" message="메모에 태그가 중복되었습니다." :isVisible="isTagDuplicatedAlert"/>
         <AlertWarning @turnOff="isNotValidNumberOfTagsAlert = $event" message="메모에 한 번에 추가할 수 있는 최대 태그의 수는 10개입니다." :isVisible="isNotValidNumberOfTagsAlert"/>
         <AlertServerError @turnOff="isServerErrorAlert = $event" :isVisible="isServerErrorAlert"/>
@@ -136,7 +164,7 @@
 <script>
 import {
   getMemos, saveMemoApi, saveMemoWithTagsApi, changeMemoTextApi, 
-  addTagsToMemoApi, deleteMemoApi 
+  addTagsToMemoApi, deleteMemoApi, deleteTagToMemoApi
 } from '@/api/memo-list.js';
 
 import AlertWarning from "@/components/basic/AlertWarning.vue";
@@ -158,6 +186,7 @@ export default {
 
       newMemoText: '',
       selectedTag: null,
+      selectedMemoTag: null,
 
       isShowMemoForm: false,
       isShowTagsInMemoForm: false,
@@ -165,6 +194,7 @@ export default {
       isServerErrorAlert: false,
       isTagDuplicatedAlert: false,
       isNotValidNumberOfTagsAlert: false,
+      isNotFoundTagsAlert: false,
     };
   },
   computed: {
@@ -227,6 +257,11 @@ export default {
       this.memos.forEach(memo => memo.showMemoDeleteForm = false);
     },
 
+    showMemoTagDeleteForm(memo, memoTag) {
+      this.selectedMemoTag = memoTag;
+      memo.showMemoTagDeleteForm = !memo.showMemoTagDeleteForm;
+    },
+
     addTag() {
       if (!this.selectedTag) {
         this.selectedTag = this.allTags[0].name;
@@ -244,13 +279,21 @@ export default {
       }
     },
 
-    initializeMemo(memo) {
-      return {
-        ...memo,
+    initializeMemo(item) {
+      const memo = {
+        ...item,
         showMemoChangeForm: false,
         showMemoAddTagsForm: false,
         showMemoDeleteForm: false,
+        showMemoTagDeleteForm: false,
       };
+
+      if (item.memoTagQueryResponses) {
+        memo.memoTagQueryResponses = item.memoTagQueryResponses;
+      } else {
+        memo.memoTagQueryResponses = [];
+      }
+      return memo;
     },
 
     createMemo() {
@@ -262,7 +305,7 @@ export default {
 
     async addMemoWithTags() {
       if (this.tags.length === 0) {
-        this.isTagDuplicatedAlert = true;
+        this.isNotFoundTagsAlert = true;
         return;
       }
 
@@ -277,14 +320,25 @@ export default {
         const newMemo = {
           id: response.data.memoId,
           text: response.data.text,
+          memoTagQueryResponses: this.makeMemoTagQueryResponses(response.data.memoId, response.data.tagIds)
         }
         this.memos.push(this.initializeMemo(newMemo));
         this.isShowMemoForm = false;
         this.newMemoText = '';
         this.isShowTagsInMemoForm = false;
       } catch (error) {
-        this.handleServerError(error);
+        this.handleInvalidTagsError(error);
       }
+    },
+
+    makeMemoTagQueryResponses(memoId, tagIds) {
+      return tagIds.map(tagId => {
+        return {
+          tagId: tagId,
+          tagName: this.allTags.find(tag => tag.id === tagId).name,
+          memoId: memoId
+        }
+      })
     },
 
     async addMemo() {
@@ -323,16 +377,22 @@ export default {
     },
     
     async addTagsToMemo(memo) {
+      if (this.tags.length === 0) {
+        this.isNotFoundTagsAlert = true;
+        return;
+      }
+      const tagIds = this.tags.map(tag => this.tagsMap.get(tag).id);
       try {
         await addTagsToMemoApi( 
           {
             memoId: memo.id,
-            tagIds: this.tags.map(tag => this.tagsMap.get(tag).id)
+            tagIds: tagIds
           } 
         );
+        memo.memoTagQueryResponses.push(...this.makeMemoTagQueryResponses(memo.id, tagIds));
         memo.showMemoAddTagsForm = false;
       } catch (error) {
-        this.handleServerError(error);
+        this.handleInvalidTagsError(error);
       }
     },
 
@@ -346,12 +406,41 @@ export default {
       }
     },
 
+    async deleteMemoTag(memo) {
+      try {
+        await deleteTagToMemoApi( {
+          memoId: memo.id,
+          tagId: this.selectedMemoTag.tagId,
+        });
+        memo.memoTagQueryResponses = memo.memoTagQueryResponses.filter(tag => tag.tagId !== this.selectedMemoTag.tagId);
+        memo.showMemoTagDeleteForm = false;
+      } catch (error) {
+        this.handleServerError(error);
+      }
+    },
+
+    handleInvalidTagsError(error) {
+      if (error.response && error.response.data.message === '메모에 태그가 중복되었습니다.') {
+          this.isTagDuplicatedAlert = true;
+          return;
+      }
+      if (error.response && error.response.data.message === '한 번에 메모에 추가할 수 있는 태그의 수는 10개입니다.') {
+          this.isNotValidNumberOfTagsAlert = true;
+          return;
+      }
+      this.handleServerError(error);
+    },
+
+    handleServerError(error) {
+      this.isServerErrorAlert = true;
+      console.log(`오류가 발생했습니다: ${error}`);
+    },
+
   },
 };
 </script>
 
 <style>
-
   .limited-charactor {
     white-space: nowrap;
     overflow: hidden;
