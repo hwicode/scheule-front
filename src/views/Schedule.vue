@@ -650,7 +650,6 @@ export default {
       if (this.year === new Date().getFullYear() && this.month === new Date().getMonth() + 1 && this.day === new Date().getDate()) {
         await saveSchedule(date);
         this.fetchSchedule();
-        this.fetchReviewCycles();
       }
     },
 
