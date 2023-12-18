@@ -183,7 +183,7 @@
             <form @submit.prevent="changeReviewCycleName(reviewCycle)">
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <label class="form-label">복습 주기 이름 변경</label>
-                <button @click="reviewCycle.showReviewCycleChangeForm = !reviewCycle.showReviewCycleChangeForm;" type="button" class="btn-close"></button>
+                <button @click="closeReviewCycleChangeForm(reviewCycle)" type="button" class="btn-close"></button>
               </div>
               <div class="input-group">
                 <input v-model="newReviewCycleName" type="text" class="form-control" placeholder="새로운 이름을 입력하세요" required>
@@ -197,7 +197,7 @@
             <form @submit.prevent="deleteReviewCycle(reviewCycle)">
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <label class="form-label">복습 주기 삭제</label>
-                <button @click="reviewCycle.showReviewCycleDeleteForm = !reviewCycle.showReviewCycleDeleteForm;" type="button" class="btn-close"></button>
+                <button @click="closeReviewCycleDeleteForm(reviewCycle)" type="button" class="btn-close"></button>
               </div>
               <div class="text-center">
                 <button type="submit" class="btn btn-secondary form-btn">삭제</button>
@@ -210,7 +210,7 @@
             <form @submit.prevent="changeReviewCyclePeriod(reviewCycle)">
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <label class="form-label">복습 주기 기간 변경</label>
-                <button @click="reviewCycle.showReviewCyclePeriodForm = !reviewCycle.showReviewCyclePeriodForm;" type="button" class="btn-close"></button>
+                <button @click="closeReviewCyclePeriodForm(reviewCycle)" type="button" class="btn-close"></button>
               </div>
               <label class="form-label fw-bold">새로운 복습 주기 : {{ [...cycleNumbers].sort() }}</label>
               <div class="input-group mb-3">
@@ -348,11 +348,13 @@ import AlertWarning from "@/components/basic/AlertWarning.vue";
 import AlertServerError from "@/components/basic/AlertServerError.vue";
 
 import { 
-  getSchedule, getScheduleTags, saveSchedule, getReviewCyclesApi, 
-  saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi,
-  changeEmojiAndReviewApi, addTagToScheduleApi, deleteTagToScheduleApi, changeMainTagApi,
+  getSchedule, getScheduleTags, saveSchedule, changeEmojiAndReviewApi, 
+  addTagToScheduleApi, deleteTagToScheduleApi, changeMainTagApi,
   saveTagApi, changeTagNameApi, deleteTagApi
 } from '@/api/schedule.js';
+import {
+  saveReviewCycleApi, changeReviewCycleNameApi, changeReviewCyclePeriodApi, deleteReviewCycleApi 
+} from '@/api/review-cycles.js';
 
 export default {
   name: 'Schedule',
@@ -373,12 +375,12 @@ export default {
       totalScore: 0,
       achievement: 0,
       totalLearningTime: 0,
-      emoji: undefined,
+      emoji: null,
       mainTag: '',
       review: '',
       newReview: '',
 
-      selectedEmoji: undefined,
+      selectedEmoji: null,
       selectedTag: null,
       selectedDailyTagId: null,
       selectedMainTag: null,
@@ -392,7 +394,6 @@ export default {
         ['HARD', 3]
       ]),
       tags: [],
-      reviewCycles: [],
 
       newReviewCycleName: '',
       cycleNumbers: new Set(),
@@ -427,6 +428,10 @@ export default {
 
     emojiMap() {
       return this.$store.state.emojis.emojis;
+    },
+
+    reviewCycles() {
+      return this.$store.state.reviewCycles.reviewCycles;
     }
   },
   methods: {
@@ -497,32 +502,29 @@ export default {
     },
 
     showReviewCycleChangeForm(reviewcycle) {
-      this.closeAllReviewCycleChangeForm();
-      reviewcycle.showReviewCycleChangeForm = !reviewcycle.showReviewCycleChangeForm;
+      this.$store.commit('reviewCycles/showReviewCycleChangeForm', reviewcycle);
       this.newReviewCycleName = '';
     },
-
-    closeAllReviewCycleChangeForm() {
-      this.reviewCycles.forEach(reviewCycle => reviewCycle.showReviewCycleChangeForm = false);
-    },
-
+    
     showReviewCyclePeriodForm(reviewcycle) {
-      this.closeAllReviewCyclePeriodForm();
-      reviewcycle.showReviewCyclePeriodForm = !reviewcycle.showReviewCyclePeriodForm;
+      this.$store.commit('reviewCycles/showReviewCyclePeriodForm', reviewcycle);
       this.cycleNumbers = new Set();
     },
 
-    closeAllReviewCyclePeriodForm() {
-      this.reviewCycles.forEach(reviewCycle => reviewCycle.showReviewCyclePeriodForm = false);
-    },
-
     showReviewCycleDeleteForm(reviewcycle) {
-      this.closeAllReviewCycleDeleteForm();
-      reviewcycle.showReviewCycleDeleteForm = !reviewcycle.showReviewCycleDeleteForm;
+      this.$store.commit('reviewCycles/showReviewCycleDeleteForm', reviewcycle);
     },
 
-    closeAllReviewCycleDeleteForm() {
-      this.reviewCycles.forEach(reviewCycle => reviewCycle.showReviewCycleDeleteForm = false);
+    closeReviewCycleChangeForm(reviewCycle) {
+      this.$store.commit('reviewCycles/closeReviewCycleChangeForm', reviewCycle);
+    },
+
+    closeReviewCyclePeriodForm(reviewCycle) {
+      this.$store.commit('reviewCycles/closeReviewCyclePeriodForm', reviewCycle);
+    },
+
+    closeReviewCycleDeleteForm(reviewCycle) {
+      this.$store.commit('reviewCycles/closeReviewCycleDeleteForm', reviewCycle);
     },
 
     showDailyTagDeleteForm(tag) {
@@ -666,30 +668,6 @@ export default {
       return `${this.year}-${this.month.toString().padStart(2, '0')}-${this.day.toString().padStart(2, '0')}`;
     },
 
-    async fetchReviewCycles() {
-      try {
-        const response = await getReviewCyclesApi();
-        this.initializeReviewCycles(response.data);
-      } catch (error) {
-        this.handleServerError(error);
-      }
-    },
-
-    initializeReviewCycles(reviewCycles) {
-      this.reviewCycles = reviewCycles.map(reviewCycle => {
-        return this.initializeReviewCycle(reviewCycle);
-      })
-    },
-
-    initializeReviewCycle(reviewCycle) {
-      return {
-          ...reviewCycle,
-          showReviewCycleChangeForm: false,
-          showReviewCyclePeriodForm: false,
-          showReviewCycleDeleteForm: false,
-      };
-    },
-
     async addTagToSchedule() {
       if (!this.selectedTag) {
         this.selectedTag = this.allTags[0].name;
@@ -819,7 +797,7 @@ export default {
           name: response.data.reviewCycleName,
           reviewCycleDates: response.data.cycle
         }
-        this.reviewCycles.push(this.initializeReviewCycle(newReviewCycle));
+        this.$store.commit('reviewCycles/addReviewCycle', newReviewCycle);
       } catch (error) {
         this.handleServerError(error);
       }
@@ -836,8 +814,11 @@ export default {
           reviewCycleId: reviewCycle.id,
           newReviewCycleName: this.newReviewCycleName
         });
-        reviewCycle.name = response.data.newReviewCycleName;
-        reviewCycle.showReviewCycleChangeForm = false;
+        this.$store.commit('reviewCycles/changeReviewCycleName', {
+          reviewCycle: reviewCycle, 
+          newReviewCycleName: response.data.newReviewCycleName
+        });
+        this.closeReviewCycleChangeForm(reviewCycle);
       } catch (error) {
         this.handleServerError(error);
       }
@@ -853,8 +834,11 @@ export default {
           reviewCycleId: reviewCycle.id,
           cycle: [...this.cycleNumbers].sort()
         });
-        reviewCycle.reviewCycleDates = response.data.cycle;
-        reviewCycle.showReviewCyclePeriodForm = false;
+        this.$store.commit('reviewCycles/changeReviewCyclePeriod', {
+          reviewCycle: reviewCycle, 
+          newReviewCycleDates: response.data.cycle
+        });
+        this.closeReviewCyclePeriodForm(reviewCycle);
       } catch (error) {
         this.handleServerError(error);
       }
@@ -863,8 +847,8 @@ export default {
     async deleteReviewCycle(reviewCycle) {
       try {
         await deleteReviewCycleApi(reviewCycle.id);
-        this.reviewCycles = this.reviewCycles.filter(item => item.id !== reviewCycle.id);
-        reviewCycle.showReviewCycleDeleteForm = false;
+        this.$store.commit('reviewCycles/deleteReviewCycle', reviewCycle);
+        this.closeReviewCycleDeleteForm(reviewCycle);
       } catch (error) {
         this.handleServerError(error);
         return;
@@ -910,7 +894,6 @@ export default {
 
     this.fetchSchedule();
     this.fetchScheduleTags();
-    this.fetchReviewCycles();
   }
 }
 </script>

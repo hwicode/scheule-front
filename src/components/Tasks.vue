@@ -431,7 +431,6 @@ export default {
     dailyScheduleId: Number,
     date: String,
     items: Array,
-    reviewCycles: Array,
     showTodayScheduleButton: Function,
   },
   data() {
@@ -456,6 +455,11 @@ export default {
       isNotAllToDoSubTaskAlert: false,
       isNotAllDoneSubTaskAlert: false,
     };
+  },
+  computed: {
+    reviewCycles() {
+      return this.$store.state.reviewCycles.reviewCycles;
+    }
   },
   methods: {
     showTaskForm() {
