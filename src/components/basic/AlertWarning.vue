@@ -14,11 +14,24 @@ export default {
     watch: {
       isVisible() {
       if (this.isVisible) {
-        setTimeout(() => {
+        // 기존의 타이머를 취소
+        clearTimeout(this.timer);
+
+        // 새로운 타이머 시작
+        this.timer = setTimeout(() => {
           this.$emit('turnOff', false);
         }, 1500);
       }
     },
+  },
+  beforeUnmount() {
+    // 컴포넌트가 파괴되기 전에 타이머를 취소
+    clearTimeout(this.timer);
+  },
+  data() {
+    return {
+      timer: null,
+    };
   },
 }
 </script>
