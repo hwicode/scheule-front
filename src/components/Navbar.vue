@@ -38,7 +38,17 @@
             </li>
           </ul>
         </div>
-        <input v-model="tagInput" class="form-control me-2 " type="search" placeholder="태그 이름을 입력하세요." aria-label="Search">
+        <div class="autocomplete-container">
+          <input v-model="tagInput" 
+                 @input="autocomplete"
+                 @click="this.showAutocompletedTags = !this.showAutocompletedTags"
+                 class="form-control me-2" type="search" placeholder="태그 이름을 입력하세요." aria-label="Search">
+          <ul v-if="showAutocompletedTags" class="autocomplete-list">
+            <li v-for="(tag, index) in autocompletedTags" :key="index" @click="selectTag(tag)" class="name-hover">
+              {{ tag.name }}
+            </li>
+          </ul>
+        </div>
         <button @click.prevent="search" class="btn btn-outline-success">Search</button>
       </form>
 
@@ -49,6 +59,8 @@
 </template>
 
 <script>
+import { getAutocompletedTags } from '@/api/tags.js';
+
 export default {
   name: 'Navbar',
   data() {
@@ -56,6 +68,9 @@ export default {
       topics: ['계획표', '메모'],
       searchTopic: '계획표',
       tagInput: '',
+      autocompletedTags: [],
+      showAutocompletedTags: false,
+      debounceTimer: null,
     };
   },
   computed: {
@@ -77,7 +92,35 @@ export default {
       this.searchTopic = this.topics[index];
     },
 
+    autocomplete() {
+      clearTimeout(this.debounceTimer);
+      if (this.tagInput === '') {
+        this.autocompletedTags = [];
+        return;
+      }
+
+      this.debounceTimer = setTimeout(() => {
+        this.fetchAutocompletedTags(this.tagInput);
+      }, 1500);
+    },
+
+    async fetchAutocompletedTags(tagName) {
+      try {
+        const response = await getAutocompletedTags(tagName);
+        this.autocompletedTags = response.data;
+        this.showAutocompletedTags = response.data.length > 0;
+      } catch (error) {
+        console.error(`오류가 발생했습니다: ${error.message}`);
+      }
+    },
+
+    selectTag(tag) {
+      this.tagInput = tag.name;
+      this.showAutocompletedTags = false;
+    },
+
     search() {
+      this.showAutocompletedTags = false;
       const tagId = this.tagsMap.get(this.tagInput) === undefined ? undefined : this.tagsMap.get(this.tagInput).id;
       
       this.$router.push({
@@ -100,7 +143,28 @@ export default {
     padding: 0.25rem 0.75rem;
     font-size: 1rem;
   }
+
   .router-link-active .nav-link {
-  text-decoration: none;
+    text-decoration: none;
+  }
+
+.autocomplete-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 </style>

@@ -5,4 +5,8 @@ function getTags() {
     return api.get('/tags');
 }
 
-export { getTags };
+function getAutocompletedTags(nameKeyword) {
+    return api.get('/search/tags', {params: { nameKeyword: nameKeyword }});
+}
+
+export { getTags, getAutocompletedTags };
