@@ -1,16 +1,21 @@
 import { createWebHistory, createRouter } from "vue-router";
 
+import SignIn from "@/views/SignIn.vue";
 import Schedule from "@/views/Schedule.vue";
 import Calendar from "@/views/Calendar.vue";
 import Search from "@/views/Search.vue";
 
 const routes = [
     {
+      path: "/",
+      component: SignIn,
+    },
+    {
        path: "/schedule",
        component: Schedule,
     },
     {
-      path: "/",
+      path: "/calendar",
       component: Calendar,
     },
     {

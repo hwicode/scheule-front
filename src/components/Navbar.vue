@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar navbar-expand-lg bg-dark border-bottom border-body" data-bs-theme="dark">
   <div class="container-fluid">
-    <router-link to="/" class="navbar-brand">
+    <router-link to="/calendar" class="navbar-brand">
       <img src="/logo.png" alt="Logo" width="50" height="50">
     </router-link>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,13 +16,13 @@
           </router-link>
         </li>
         <li class="nav-item">
-          <router-link to="/" class="nav-link">
+          <router-link to="/calendar" class="nav-link">
             Calendar
           </router-link>
         </li>
         <li class="nav-item">
-          <router-link to="#" class="nav-link">
-            LogIn
+          <router-link to="/" class="nav-link">
+            Sign In
           </router-link>
         </li>
       </ul>
