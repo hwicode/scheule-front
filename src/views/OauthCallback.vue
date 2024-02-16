@@ -15,7 +15,7 @@ export default {
         const token = response.headers.getAuthorization();
         sessionStorage.setItem('authToken', token);
       } catch (error) {
-        console.log(`오류가 발생했습니다: ${error}`);
+          console.log(`오류가 발생했습니다: ${error}`);
       }
     },
   },
@@ -23,6 +23,10 @@ export default {
     const oauthProvider = this.$route.params.provider;
     const code = this.$route.query.code;
     await this.fetchOauthLogin(oauthProvider, code);
+
+    this.$store.dispatch('tags/fetchTags');
+    this.$store.dispatch('reviewCycles/fetchReviewCycles');
+    this.$store.commit('login/setLogin', true);
 
     this.$router.push('/calendar');
   }
