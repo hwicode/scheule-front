@@ -11,10 +11,10 @@
 
       <div>
         <h3 class="h4 mb-3">간편 로그인</h3>
-        <button class="btn btn-outline-primary" @click="goToOauthLoginPage('GOOGLE')">
+        <a :href="googleOauthLoginPage" class="btn btn-outline-primary">
           <i class="bi bi-google"></i>
           <span class="px-2">구글 아이디로 로그인</span>
-        </button>
+        </a>
       </div>
 
     </div>
@@ -26,18 +26,27 @@
 </template>
   
 <script>
-import { redirectToOauthLoginPage } from '@/api/sign-in.js';
+import { getOauthLoginPage } from '@/api/sign-in.js';
 
 export default {
   name: 'SignIn',
+  data() {
+    return {
+      googleOauthLoginPage: '',
+    }
+  },
   methods: {
-    async goToOauthLoginPage(oauthProvider) {
+    async fetchOauthLoginPage() {
       try {
-        await redirectToOauthLoginPage(oauthProvider);
+        const loginPageResponse = await getOauthLoginPage('GOOGLE');
+        this.googleOauthLoginPage = loginPageResponse.data.loginUrl;
       } catch (error) {
         console.log(`오류가 발생했습니다: ${error}`);
       }
     },
+  },
+  created() {
+    this.fetchOauthLoginPage();
   }
 };
 </script>
