@@ -20,10 +20,13 @@
             Calendar
           </router-link>
         </li>
-        <li class="nav-item">
+        <li v-if="!login" class="nav-item">
           <router-link to="/" class="nav-link">
-            Sign In
+            Log In
           </router-link>
+        </li>
+        <li v-if="login" @click="requestLogout()" class="nav-link" style="cursor: pointer;">
+          Log Out
         </li>
       </ul>
 
@@ -60,6 +63,7 @@
 
 <script>
 import { getAutocompletedTags } from '@/api/tags.js';
+import { logout } from '@/api/sign-in.js';
 
 export default {
   name: 'Navbar',
@@ -77,6 +81,10 @@ export default {
     tagsMap() {
       return this.$store.state.tags.tagsMap;
     },
+
+    login() {
+      return this.$store.state.login.login;
+    }
   },
   methods: {
     getFormattedDate() {
@@ -133,6 +141,17 @@ export default {
           tagId: tagId,
         },
       });
+    },
+
+    async requestLogout() {
+      try {
+        await logout();
+        sessionStorage.removeItem('authToken');
+        this.$store.commit('login/setLogin', false);
+        this.$router.go(0);
+      } catch (error) {
+        console.error(`오류가 발생했습니다: ${error.message}`);
+      }
     },
   },
 }

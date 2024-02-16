@@ -16,9 +16,7 @@ function reissueAuthToken() {
 }
 
 function logout() {
-    const response = api.post(`/auth/logout`);
-    sessionStorage.removeItem('authToken');
-    return response;
+    return api.post(`/auth/logout`);
 }
 
 export { getOauthLoginPage, loginWithOauth, reissueAuthToken, logout };

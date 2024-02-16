@@ -25,7 +25,7 @@ function apiInstance() {
   instance.interceptors.response.use(
     response => response,
     async (error) => {
-      if (!sessionStorage.getItem('logIn')) {
+      if (!sessionStorage.getItem('authToken')) {
         return Promise.reject(error);
       }
       
@@ -62,7 +62,6 @@ function loginRequestApiInstance() {
 
   instance.interceptors.response.use(
     response => {
-      sessionStorage.setItem('logIn', true);
       return response;
     },
     error => {
@@ -74,7 +73,6 @@ function loginRequestApiInstance() {
 
 function handleLoginError(error) {
   if (error.response) {
-    sessionStorage.removeItem('logIn');
     sessionStorage.removeItem('authToken');
     router.push('/');
   }
