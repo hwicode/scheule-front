@@ -1,13 +1,16 @@
 <template>
-  <!-- 로그인 폼의 아래에 공백을 주기 위해 사용함 -->
-  <div class="my-5 py-5"></div>
+  <Loading :active="true" class="vl-overlay"></Loading>
 </template>
   
 <script>
 import { loginWithOauth } from '@/api/sign-in.js';
+import Loading from 'vue-loading-overlay';
 
 export default {
   name: 'OauthCallback',
+  components: {
+    Loading: Loading
+  },
   methods: {
     async fetchOauthLogin(oauthProvider, code) {
       try {
@@ -34,6 +37,11 @@ export default {
 </script>
   
 <style scoped>
-
+  .vl-overlay {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
 </style>
   
