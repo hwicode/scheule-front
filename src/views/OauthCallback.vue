@@ -1,5 +1,7 @@
 <template>
-  <Loading :active="true" class="vl-overlay"></Loading>
+  <div class="empty-screen">
+    <Loading :active="true" class="vl-overlay"></Loading>
+  </div>
 </template>
   
 <script>
@@ -37,6 +39,12 @@ export default {
 </script>
   
 <style scoped>
+  .empty-screen {
+    width: 100%;
+    height: 60vh;
+    box-sizing: border-box;
+  }
+
   .vl-overlay {
     position: fixed;
     top: 40%;
