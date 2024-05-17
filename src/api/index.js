@@ -2,8 +2,6 @@ import axios from 'axios';
 import router from '@/routes/router.js'
 import { Mutex, tryAcquire, E_ALREADY_LOCKED } from 'async-mutex';
 
-import { reissueAuthToken } from './sign-in.js';
-
 const globalMutex = new Mutex();
 
 function apiInstance() {
@@ -28,13 +26,13 @@ function apiInstance() {
       if (!sessionStorage.getItem('authToken')) {
         return Promise.reject(error);
       }
-      
+
       if (error.response && error.response.status === 401) {
+        let response;
         try {
           await tryAcquire(globalMutex).runExclusive(async () => {
-            const response = await reissueAuthToken();
-            const token = response.headers.getAuthorization();
-            sessionStorage.setItem('authToken', token);
+            // 액세스 토큰 재발급 요청
+            response = await loginRequestApiInstance().post(`/auth/token`);
           });
         } catch (error) {
           if (error === E_ALREADY_LOCKED) {
@@ -42,6 +40,12 @@ function apiInstance() {
           }
         }
 
+        // 액세스 토큰을 재발급 요청할 때, 리플레시 토큰 만료시 에러 리턴
+        if (response.status === 401) {
+          return;
+        }
+
+        // 재발급 요청이 계속 실패하면 무한 루프 위험 있음
         router.go();
       }
 
@@ -62,6 +66,8 @@ function loginRequestApiInstance() {
 
   instance.interceptors.response.use(
     response => {
+      const token = response.headers.getAuthorization();
+      sessionStorage.setItem('authToken', token);
       return response;
     },
     error => {

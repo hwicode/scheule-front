@@ -11,12 +11,8 @@ function loginWithOauth(oauthProvider, code) {
     return loginRequestApi.get(`/oauth2/${oauthProvider}/callback`, {params: { code: code }});
 }
 
-function reissueAuthToken() {
-    return loginRequestApi.post(`/auth/token`);
-}
-
 function logout() {
     return api.post(`/auth/logout`);
 }
 
-export { getOauthLoginPage, loginWithOauth, reissueAuthToken, logout };
+export { getOauthLoginPage, loginWithOauth, logout };

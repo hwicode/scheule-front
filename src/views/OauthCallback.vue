@@ -16,9 +16,7 @@ export default {
   methods: {
     async fetchOauthLogin(oauthProvider, code) {
       try {
-        const response = await loginWithOauth(oauthProvider, code);
-        const token = response.headers.getAuthorization();
-        sessionStorage.setItem('authToken', token);
+        await loginWithOauth(oauthProvider, code);
       } catch (error) {
           console.log(`오류가 발생했습니다: ${error}`);
       }
