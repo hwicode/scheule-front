@@ -148,7 +148,7 @@ export default {
         await logout();
         sessionStorage.removeItem('authToken');
         this.$store.commit('login/setLogin', false);
-        this.$router.go(0);
+        this.$router.push('/');
       } catch (error) {
         console.error(`오류가 발생했습니다: ${error.message}`);
       }
