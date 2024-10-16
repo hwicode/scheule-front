@@ -612,7 +612,7 @@ export default {
           taskName: task.name,
           newTaskName: this.newTaskName
         });
-        task.name = response.data.newTaskCheckerName;
+        task.name = response.data.newTaskName;
         task.showTaskChangeForm = false;
       } catch (error) {
         this.handleTaskDuplicatedError(error);
@@ -777,7 +777,7 @@ export default {
           subTaskName: subTask.name,
           newSubTaskName: this.newSubTaskName
         });
-        subTask.name = response.data.newSubTaskCheckerName;
+        subTask.name = response.data.newSubTaskName;
         subTask.showSubTaskChangeForm = false;
       } catch (error) {
         this.handleSubTaskDuplicatedError(error);

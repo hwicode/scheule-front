@@ -4,7 +4,6 @@ const api = apiInstance();
 function saveTaskApi(dto) {
     return api.post(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks`,
      {
-        dailyToDoListId: dto.dailyToDoListId,
         taskName: dto.taskName,
         difficulty: dto.difficulty,
         priority: dto.priority,
@@ -15,9 +14,8 @@ function saveTaskApi(dto) {
 function changeTaskNameApi(dto) {
     return api.patch(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/name`,
      { 
-        dailyChecklistId: dto.dailyToDoListId,
-        taskCheckerName: dto.taskName,
-        newTaskCheckerName: dto.newTaskName
+        taskName: dto.taskName,
+        newTaskName: dto.newTaskName
     });
 }
 
@@ -28,8 +26,7 @@ function deleteTaskApi(dailyToDoListId, taskId, taskName) {
 function changeTaskStatusApi(dto) {
     return api.patch(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/status`,
      {
-        dailyChecklistId: dto.dailyToDoListId,
-        taskCheckerName: dto.taskName,
+        taskName: dto.taskName,
         taskStatus: dto.taskStatus 
     });
 }
@@ -45,8 +42,7 @@ function changeTaskPriorityOrImportanceApi(dto) {
 function changeTaskDifficultyApi(dto) {
     return api.patch(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/difficulty`,
      {
-        dailyChecklistId: dto.dailyToDoListId,
-        taskCheckerName: dto.taskName,
+        taskName: dto.taskName,
         difficulty: dto.difficulty 
     });
 }
@@ -67,7 +63,6 @@ function cancelReviewdTaskApi(taskId) {
 function saveSubTaskApi(dto) {
     return api.post(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/subtasks`,
      {
-        dailyToDoListId: dto.dailyToDoListId,
         taskName: dto.taskName,
         subTaskName: dto.subTaskName
     });
@@ -76,9 +71,8 @@ function saveSubTaskApi(dto) {
 function changeSubTaskNameApi(dto) {
     return api.patch(`/dailyschedule/tasks/${dto.taskId}/subtasks/${dto.subTaskId}/name`,
      {
-        taskCheckerId: dto.taskId,
-        subTaskCheckerName: dto.subTaskName,
-        newSubTaskCheckerName: dto.newSubTaskName
+        subTaskName: dto.subTaskName,
+        newSubTaskName: dto.newSubTaskName
     });
 }
 
@@ -94,9 +88,8 @@ function deleteSubTaskApi(dto) {
 function changeSubTaskStatusApi(dto) {
     return api.patch(`/dailyschedule/daily-todo-lists/${dto.dailyToDoListId}/tasks/${dto.taskId}/subtasks/${dto.subTaskId}/status`,
      {
-        dailyChecklistId: dto.dailyToDoListId,
-        taskCheckerName: dto.taskName,
-        subTaskCheckerName: dto.subTaskName,
+        taskName: dto.taskName,
+        subTaskName: dto.subTaskName,
         subTaskStatus: dto.subTaskStatus
     });
 }
