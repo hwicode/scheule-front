@@ -55,9 +55,9 @@ Schedule 프로젝트의 프론트엔드를 구현한 저장소입니다.
 
 ## 주요 문제
 
-+ access token이 만료됐을 때, 재발급 요청이 여러 개 날라가는 문제를 async-mutex 라이브러리를 통해 해결했습니다.
-+ 검색어 자동완성 기능을 구현할 때, debounce를 사용했습니다.
-+ axios에서 공통으로 적용해야 하는 로직을 인터셉터를 통해 해결했습니다.
++ [access token이 만료됐을 때, 재발급 요청이 여러 개 날라가는 문제를 async-mutex 라이브러리를 통해 해결했습니다.](https://github.com/hwicode/scheule-front/issues/1)
++ [검색어 자동완성 기능을 구현할 때, debounce를 사용했습니다.](https://github.com/hwicode/scheule-front/issues/2)
++ [axios에서 공통으로 적용해야 하는 로직을 인터셉터를 통해 해결했습니다.](https://github.com/hwicode/scheule-front/issues/3)
 + 디바이스에 따라 반응형으로 크기가 조절되도록 만들었습니다.
 
 <br><br>
