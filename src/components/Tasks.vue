@@ -571,7 +571,7 @@ export default {
         taskStatus: 'TODO'
       };
       this.$emit('addTask', newTask);
-      this.$emit('calculateAchievement');
+      this.$emit('calculateNewTotalScore');
       this.isShowTaskForm = false;
     },
 
@@ -632,7 +632,7 @@ export default {
       try {
         await deleteTaskApi(this.dailyScheduleId, task.id, task.name);
         this.$emit('deleteTask', task);
-        this.$emit('calculateAchievement');
+        this.$emit('calculateNewTotalScore');
       } catch (error) {
         this.handleServerError(error);
         return;
@@ -649,7 +649,7 @@ export default {
         });
         task.showTaskStatusForm = false;
         task.taskStatus = response.data.modifiedTaskStatus;
-        this.$emit('calculateAchievement');
+        this.$emit('calculateNewTotalScore');
       } catch (error) {
         this.handleTaskStatusError(error);
         return;
@@ -693,6 +693,7 @@ export default {
         });
         task.showTaskDifficultyForm = false;
         task.difficulty = response.data.modifiedDifficulty;
+        this.$emit('calculateNewTotalScore');
       } catch (error) {
         this.handleServerError(error);
         return;
@@ -754,7 +755,7 @@ export default {
         task.showSubTaskCreateForm = false;
         if (task.taskStatus === 'DONE') task.taskStatus = 'PROGRESS';
         this.$emit('addSubTask', task, newSubTask);
-        this.$emit('calculateAchievement');
+        this.$emit('calculateNewTotalScore');
       } catch (error) {
         this.handleSubTaskDuplicatedError(error);
         return;
@@ -815,7 +816,7 @@ export default {
         subTask.showSubTaskStatusForm = false;
         task.taskStatus = response.data.modifiedTaskStatus;
         subTask.subTaskStatus = response.data.modifiedSubTaskStatus;
-        this.$emit('calculateAchievement');
+        this.$emit('calculateNewTotalScore');
       } catch (error) {
         this.handleServerError(error);
         return;

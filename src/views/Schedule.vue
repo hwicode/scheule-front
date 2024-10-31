@@ -263,7 +263,7 @@
   <div class="container">
     <div class="row">
       <div class="col-md-6 my-3">
-        <Tasks @addTask="addTask" @deleteTask="deleteTask" @addSubTask="addSubTask" @calculateAchievement="calculateAchievement" :dailyScheduleId="id" :date="getFormattedDate()" :items="items" :showTodayScheduleButton="showTodayScheduleButton"/>
+        <Tasks @addTask="addTask" @deleteTask="deleteTask" @addSubTask="addSubTask" @calculateNewTotalScore="calculateNewTotalScore" :dailyScheduleId="id" :date="getFormattedDate()" :items="items" :showTodayScheduleButton="showTodayScheduleButton"/>
       </div>
       <div class="col-md-6 my-3">
         <TimeTable @changeTotalLearningTime="changeTotalLearningTime" :date="getFormattedDate()" :dailyScheduleId="id" :tasks="tasks" :subTasks="subTasks" :showTodayScheduleButton="showTodayScheduleButton"/>
@@ -557,7 +557,11 @@ export default {
       this.initializeTasksAndSubTasks();
     },
 
-    calculateAchievement() {
+    calculateNewTotalScore() {
+      this.totalScore = this.items.reduce((total, item) => {
+        return total + this.difficultysMap.get(item.difficulty);
+      }, 0);
+
       const doneScore = this.items.filter(item => item.taskStatus === 'DONE')
       .reduce((total, item) => {
         return total + this.difficultysMap.get(item.difficulty);
