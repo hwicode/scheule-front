@@ -156,6 +156,8 @@ export default {
 
   created() {
     this.$store.dispatch('login/loadLogin');
+    this.$store.dispatch('tags/loadTags');
+    this.$store.dispatch('reviewCycles/loadReviewCycles');
   }
 }
 </script>
