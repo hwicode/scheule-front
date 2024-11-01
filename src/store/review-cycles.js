@@ -11,19 +11,23 @@ const mutations = {
 
     addReviewCycle(state, reviewCycle) {
         reviewCycle = initializeReviewCycle(reviewCycle);
-        state.reviewCycles.push(reviewCycle)
+        state.reviewCycles.push(reviewCycle);
+        updateReviewCycles(state);
     },
 
     changeReviewCycleName(state, payload) {    
         payload.reviewCycle.name = payload.newReviewCycleName;    
+        updateReviewCycles(state);
     },
 
     changeReviewCyclePeriod(state, payload) {    
-        payload.reviewCycle.reviewCycleDates = payload.newReviewCycleDates;    
+        payload.reviewCycle.reviewCycleDates = payload.newReviewCycleDates;   
+        updateReviewCycles(state); 
     },
 
     deleteReviewCycle(state, reviewcycle) {
         state.reviewCycles = state.reviewCycles.filter(item => item.id !== reviewcycle.id);
+        updateReviewCycles(state);
     },
 
     showReviewCycleChangeForm(state, reviewcycle) {
@@ -62,9 +66,14 @@ const actions = {
             return initializeReviewCycle(reviewCycle);
           })
           commit('setReviewCycles', reviewCycles);
+          sessionStorage.setItem('reviewCycles', JSON.stringify(state.reviewCycles));
         } catch (error) {
           console.error(`오류가 발생했습니다: ${error.message}`);
         }
+    },
+
+    loadReviewCycles({ commit }) {
+        commit('setReviewCycles', JSON.parse(sessionStorage.getItem('reviewCycles')));
     },
 };
 
@@ -87,6 +96,10 @@ function closeAllReviewCyclePeriodForm(state) {
 
 function closeAllReviewCycleDeleteForm(state) {
     state.reviewCycles.forEach(reviewCycle => reviewCycle.showReviewCycleDeleteForm = false);
+}
+
+function updateReviewCycles(state) {   
+    sessionStorage.setItem('reviewCycles', JSON.stringify(state.reviewCycles));
 }
 
 export default {

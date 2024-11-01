@@ -902,6 +902,7 @@ export default {
     this.fetchSchedule();
     this.fetchScheduleTags();
     this.$store.dispatch('tags/loadTags');
+    this.$store.dispatch('reviewCycles/loadReviewCycles');
   }
 }
 </script>
