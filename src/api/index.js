@@ -1,6 +1,8 @@
 import axios from 'axios';
-import router from '@/routes/router.js'
-import { Mutex, tryAcquire, E_ALREADY_LOCKED } from 'async-mutex';
+import { Mutex, tryAcquire } from 'async-mutex';
+
+import router from '@/routes/router.js';
+import store from '@/store/index.js';
 
 const globalMutex = new Mutex();
 
@@ -28,24 +30,17 @@ function apiInstance() {
       }
 
       if (error.response && error.response.status === 401) {
-        let response;
         try {
           await tryAcquire(globalMutex).runExclusive(async () => {
             // 액세스 토큰 재발급 요청
-            response = await loginRequestApiInstance().post(`/auth/token`);
+            await loginRequestApiInstance().post(`/auth/token`);
           });
         } catch (error) {
-          if (error === E_ALREADY_LOCKED) {
-            return Promise.reject(error);
-          }
+          // 락 or 액세스 토큰 발급 실패
+          return Promise.reject(error);
         }
 
-        // 액세스 토큰을 재발급 요청할 때, 리플레시 토큰 만료시 에러 리턴
-        if (response.status === 401) {
-          return;
-        }
-
-        // 재발급 요청이 계속 실패하면 무한 루프 위험 있음
+        // 액세스 토큰 재발급 성공 시 현재 페이지로 이동
         router.go();
       }
 
@@ -79,7 +74,7 @@ function loginRequestApiInstance() {
 
 function handleLoginError(error) {
   if (error.response) {
-    sessionStorage.removeItem('authToken');
+    store.commit('login/logout');
     router.push('/');
   }
   return Promise.reject(error);
