@@ -29,7 +29,7 @@ export default {
 
     this.$store.dispatch('tags/fetchTags');
     this.$store.dispatch('reviewCycles/fetchReviewCycles');
-    this.$store.commit('login/setLogin', true);
+    this.$store.commit('login/login');
 
     this.$router.push('/calendar');
   }

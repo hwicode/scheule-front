@@ -146,14 +146,17 @@ export default {
     async requestLogout() {
       try {
         await logout();
-        sessionStorage.removeItem('authToken');
-        this.$store.commit('login/setLogin', false);
+        this.$store.commit('login/logout');
         this.$router.push('/');
       } catch (error) {
         console.error(`오류가 발생했습니다: ${error.message}`);
       }
     },
   },
+
+  created() {
+    this.$store.dispatch('login/loadLogin');
+  }
 }
 </script>
 
