@@ -755,7 +755,11 @@ export default {
             newTagName: this.newTagName,
           } 
         );
-        this.tags.find(item => item.name === tag.name).name = this.newTagName;
+    
+        const foundTag = this.tags.find(item => item.name === tag.name);
+        if (foundTag) {
+          foundTag.name = this.newTagName;
+        }
         this.$store.commit('tags/changeTagName', { tag: tag, newTagName: this.newTagName });
         this.closeTagChangeForm(tag);
       } catch (error) {
@@ -897,6 +901,7 @@ export default {
 
     this.fetchSchedule();
     this.fetchScheduleTags();
+    this.$store.dispatch('tags/loadTags');
   }
 }
 </script>
