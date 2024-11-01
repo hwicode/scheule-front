@@ -102,14 +102,12 @@
       },
   
       selectDate(day) {
-        if (day.date && day.schedule !== undefined) {
-          this.$router.push({
-            path: '/schedule',
-            query: {
-              date: this.getFormattedDate(day.date.getDate()),
-            },
-          });
-        }
+        this.$router.push({
+          path: '/schedule',
+          query: {
+            date: this.getFormattedDate(day.date.getDate()),
+          },
+        });
       },
 
       async fetchCalendarSchedules() {
