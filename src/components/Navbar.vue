@@ -146,11 +146,11 @@ export default {
     async requestLogout() {
       try {
         await logout();
-        this.$store.commit('login/logout');
-        this.$router.push('/');
       } catch (error) {
         console.error(`오류가 발생했습니다: ${error.message}`);
       }
+      this.$store.commit('login/logout');
+      this.$router.push('/');
     },
   },
 
